@@ -1,14 +1,9 @@
+// register_screen.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trabalho_lab_de_disp_moveis/login/registerView.controller.dart';
-import 'package:trabalho_lab_de_disp_moveis/login/widgets/emailField.widget.dart';
-import 'package:trabalho_lab_de_disp_moveis/login/widgets/nameField.widget.dart';
-import 'package:trabalho_lab_de_disp_moveis/login/widgets/passwordField.widget.dart';
-import 'package:trabalho_lab_de_disp_moveis/login/widgets/registerSubmitButton.dart';
 
-class RegisterView extends GetView<RegisterController> {
-  const RegisterView({super.key});
-
+class RegisterScreen extends GetView<RegisterController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,10 +17,23 @@ class RegisterView extends GetView<RegisterController> {
       shrinkWrap: true,
       padding: const EdgeInsets.all(10),
       children: [
-        NameField(),
-        EmailField(),
-        PasswordField(),
-        RegisterSubmitButton(),
+        Obx(() => TextFormField(
+              decoration: InputDecoration(labelText: 'Name'),
+              onChanged: (value) => controller.name.value = value,
+            )),
+        Obx(() => TextFormField(
+              decoration: InputDecoration(labelText: 'Email'),
+              onChanged: (value) => controller.email.value = value,
+            )),
+        Obx(() => TextFormField(
+              decoration: InputDecoration(labelText: 'Password'),
+              obscureText: true,
+              onChanged: (value) => controller.password.value = value,
+            )),
+        ElevatedButton(
+          onPressed: controller.tryToRegister,
+          child: Text('Register'),
+        ),
       ],
     );
   }
