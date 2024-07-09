@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:trabalho_lab_de_disp_moveis/login/login.view.dart';
-
 import 'view/home.dart';
+import 'view/login.dart';
 
-void main(){
+final routes = {
+  "/": (context) => Login(),
+  "/login": (context) => Login()
+};
+
+void main() {
   runApp(MaterialApp(
     title: "Games Tracker",
     debugShowCheckedModeBanner: false,
-    home: LoginScreen()
+    routes: routes
   ));
-
-  int.parse("55");
-  double.parse("4.5");
 }
