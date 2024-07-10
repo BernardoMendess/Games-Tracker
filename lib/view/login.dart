@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:login_app/view/register.dart';
 import '../controller/login_controller.dart';
 import '../model/user.dart';
 import 'home.dart';
@@ -32,6 +33,13 @@ class _LoginState extends State<Login> {
       preferences.setString("user", user);
       preferences.setString("pass", pass);
     });
+  }
+
+  void _cadastrar() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => Register()),
+    );
   }
 
   void _submit() async {
@@ -136,6 +144,11 @@ class _LoginState extends State<Login> {
                   ElevatedButton(
                     onPressed: _submit,
                     child: Text("Login")
+                  ),
+
+                  ElevatedButton(
+                    onPressed: _cadastrar,
+                    child: Text("Cadastrar")
                   )
                 ],
               )
