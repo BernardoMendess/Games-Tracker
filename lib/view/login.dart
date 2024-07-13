@@ -163,7 +163,7 @@ class _LoginState extends State<Login> {
           builder: (context) => Home()
         ));*/
 
-        currentWidget = Home(signOut);
+        currentWidget = Home();
         break;
     }
 
