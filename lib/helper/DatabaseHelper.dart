@@ -6,9 +6,9 @@ import 'dart:io' as io;
 import '../model/user.dart';
 import '../model/game.dart';
   
-//import '../model/genre.dart';
-//import '../model/review.dart';
-//import '../model/game_genre.dart';
+import '../model/genre.dart';
+import '../model/review.dart';
+import '../model/game_genre.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper.internal();
@@ -124,7 +124,7 @@ class DatabaseHelper {
     return result;
   }
 
-  /*Future<int> insertGenre(Genre genre) async {
+  Future<int> insertGenre(Genre genre) async {
     var database = await db;
     int result = await database.insert("genre", genre.toMap());
     return result;
@@ -156,7 +156,7 @@ class DatabaseHelper {
       whereArgs: [id]
     );
     return result;
-  }*/
+  }
 
   Future<int> insertGame(Game game) async {
     var database = await db;
@@ -192,7 +192,7 @@ class DatabaseHelper {
     return result;
   }
 
-  /*Future<int> insertGameGenre(GameGenre gameGenre) async {
+  Future<int> insertGameGenre(GameGenre gameGenre) async {
     var database = await db;
     int result = await database.insert("game_genre", gameGenre.toMap());
     return result;
@@ -247,5 +247,5 @@ class DatabaseHelper {
       whereArgs: [id]
     );
     return result;
-  }*/
+  }
 }
