@@ -26,6 +26,20 @@ class _HomeState extends State<Home> {
     getGames();
   }
 
+  Widget buildGamesList() {
+    if (widget.username.isNotEmpty) {
+      return ListView.builder(
+        itemCount: gameList.length,
+        itemBuilder: gameItemBuild,
+      );
+    } else {
+      return Container(
+        alignment: Alignment.center,
+        child: Text('Lista dos últimos jogos com nota aqui'),
+      );
+    }
+  }
+
   Widget gameItemBuild(BuildContext context, int index) {
     return Dismissible(
       key: Key(DateTime.now().microsecondsSinceEpoch.toString()),
@@ -162,13 +176,39 @@ class _HomeState extends State<Home> {
   }
 
   void _logout() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    preferences.clear();
-
-    Navigator.pushReplacement(context,
-        MaterialPageRoute(builder: (context) => Login()),
+    bool confirmLogout = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Confirmação'),
+        content: Text('Tem certeza que deseja sair?'),
+        actions: <Widget>[
+          TextButton(
+            child: Text('Cancelar'),
+            onPressed: () {
+              Navigator.of(context).pop(false);
+            },
+          ),
+          TextButton(
+            child: Text('Sair'),
+            onPressed: () {
+              Navigator.of(context).pop(true);
+            },
+          ),
+        ],
+      ),
     );
+
+    if (confirmLogout) {
+      SharedPreferences preferences = await SharedPreferences.getInstance();
+      preferences.clear();
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => Login()),
+      );
+    }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -177,14 +217,15 @@ class _HomeState extends State<Home> {
         title: Text("Games Tracker"),
         backgroundColor: const Color.fromARGB(255, 214, 82, 82),
         actions: [
-          IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: () { _logout(); },
-          ),
+          if (widget.username.isNotEmpty)
+            IconButton(
+              icon: Icon(Icons.logout),
+              onPressed: () { _logout(); },
+            ),
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: widget.username.isNotEmpty ? FloatingActionButton(
         child: Icon(Icons.add),
         backgroundColor: Colors.black,
         onPressed: () {
@@ -219,15 +260,41 @@ class _HomeState extends State<Home> {
             },
           );
         },
-      ),
+      ) : null,
       body: Container(
+        padding: EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                  },
+                  child: Text('Data de Lançamento'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                  },
+                  child: Text('Gênero'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                  },
+                  child: Text('Nota da Review'),
+                ),
+              ],
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+              },
+              child: Text('Buscar Jogos'),
+            ),
+            SizedBox(height: 20),
             Expanded(
-              child: ListView.builder(
-                itemCount: gameList.length,
-                itemBuilder: gameItemBuild,
-              ),
+              child: buildGamesList(),
             ),
           ],
         ),
