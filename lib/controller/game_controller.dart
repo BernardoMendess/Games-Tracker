@@ -35,4 +35,9 @@ class GameController {
     List<Map<String, dynamic>> maps = await _dbHelper.getLatestGames(10);
     return maps.map((map) => Game.fromMap(map)).toList();
   }
+
+  Future<Game> getGameById(int id) async {
+    Map<String, dynamic>? map = await _dbHelper.getGameById(id);
+    return Game.fromMap(map!);
+  }
 }

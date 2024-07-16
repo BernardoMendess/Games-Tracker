@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:login_app/controller/game_controller.dart';
 import 'package:login_app/model/game.dart';
 import 'package:login_app/view/login.dart';
-import 'package:login_app/view/gameDetails.dart';
+import 'package:login_app/view/game_screen.dart';
 import 'package:login_app/view/reviewRecents.dart';
 
 class Home extends StatefulWidget {
@@ -132,7 +132,7 @@ class _HomeState extends State<Home> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => GameDetails(game: gameList[index]),
+              builder: (context) => GameScreen(gameId: index,),
             ),
           ).then((value) {
             loadGames();
