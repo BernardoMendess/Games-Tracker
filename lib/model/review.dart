@@ -1,10 +1,9 @@
-import 'dart:ffi';
 
 class Review {
   int? id;
   int? userId;
   int? gameId;
-  Float? score;
+  double? score;
   String? date;
   String? description;
 

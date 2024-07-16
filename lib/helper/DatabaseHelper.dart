@@ -5,7 +5,6 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io' as io;
 import '../model/user.dart';
 import '../model/game.dart';
-  
 import '../model/genre.dart';
 import '../model/review.dart';
 import '../model/game_genre.dart';
@@ -13,7 +12,7 @@ import '../model/game_genre.dart';
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper.internal();
   static Database? _db;
-  
+
   factory DatabaseHelper() => _instance;
 
   DatabaseHelper.internal();
@@ -22,7 +21,17 @@ class DatabaseHelper {
     return _db ??= await initDb();
   }
 
+  Future<void> deleteDatabase() async {
+    final io.Directory appDocumentsDir = await getApplicationDocumentsDirectory();
+    String path = p.join(appDocumentsDir.path, "databases", "app.db");
+    if (await io.File(path).exists()) {
+      await io.File(path).delete();
+    }
+  }
+
   Future<Database> initDb() async {
+    await deleteDatabase();
+
     sqfliteFfiInit();
 
     var databaseFactory = databaseFactoryFfi;
@@ -38,8 +47,7 @@ class DatabaseHelper {
           await db.execute("""
             CREATE TABLE user(
               id INTEGER PRIMARY KEY AUTOINCREMENT,
-              name VARCHAR NOT NULL,
-              email VARCHAR NOT NULL,
+              username VARCHAR NOT NULL,
               password VARCHAR NOT NULL
             );
           """);
