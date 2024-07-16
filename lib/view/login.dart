@@ -63,8 +63,6 @@ class _LoginState extends State<Login> {
             SnackBar(content: Text(e.toString())),
           );     
       }
-      
-
     }
   }
 
@@ -153,11 +151,8 @@ class _LoginState extends State<Login> {
         break;
       
       case LoginStatus.signIn:
-        /*Navigator.push(context, MaterialPageRoute(
-          builder: (context) => Home()
-        ));*/
 
-        currentWidget = Home();
+        currentWidget = Home(username: _username,);
         break;
     }
 

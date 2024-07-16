@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:login_app/controller/game_controller.dart';
 import 'package:login_app/model/game.dart';
 import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:login_app/view/login.dart';
 
 class Home extends StatefulWidget {
-  const Home({super.key});
+  final String username;
+
+  const Home({Key? key, required this.username}) : super(key: key);
 
   @override
   State<Home> createState() => _HomeState();
@@ -157,12 +161,27 @@ class _HomeState extends State<Home> {
     getGames();
   }
 
+  void _logout() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    preferences.clear();
+
+    Navigator.pushReplacement(context,
+        MaterialPageRoute(builder: (context) => Login()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Games Tracker"),
         backgroundColor: const Color.fromARGB(255, 214, 82, 82),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () { _logout(); },
+          ),
+        ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButton(
