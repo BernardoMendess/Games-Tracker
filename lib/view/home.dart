@@ -162,7 +162,7 @@ class _HomeState extends State<Home> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Games Tracker"),
-        backgroundColor: Colors.black,
+        backgroundColor: const Color.fromARGB(255, 214, 82, 82),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButton(

@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 import 'view/login.dart';
+import 'view/register.dart';
+import 'view/guest.dart';
+import 'view/initial.dart';
 
 final routes = {
-  "/": (context) => Login(),
-  "/login": (context) => Login()
+  "/": (context) => Initial(),
+  "/login": (context) => Login(),
+  "/register": (context) => Register(),
+  "/guest": (context) => Guest(),
 };
 
 void main() {
   runApp(MaterialApp(
     title: "Games Tracker",
     debugShowCheckedModeBanner: false,
-    routes: routes
+    initialRoute: "/",
+    routes: routes,
   ));
 }
