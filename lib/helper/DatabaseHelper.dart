@@ -1,9 +1,9 @@
+import 'package:login_app/model/user.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io' as io;
-import '../model/user.dart';
 import '../model/game.dart';
 import '../model/genre.dart';
 import '../model/review.dart';
@@ -256,4 +256,60 @@ class DatabaseHelper {
     );
     return result;
   }
+
+  Future<List<Map<String, dynamic>>> getGamesByUserId(int userId) async {
+    var database = await db;
+    String sql = "SELECT * FROM game WHERE user_id = ?;";
+    List<Map<String, dynamic>> games = await database.rawQuery(sql, [userId]);
+    return games;
+  }
+
+  Future<List<Map<String, dynamic>>> getLatestGames(int limit) async {
+    var database = await db;
+    String sql = "SELECT * FROM game ORDER BY release_date DESC LIMIT ?;";
+    List<Map<String, dynamic>> games = await database.rawQuery(sql, [limit]);
+    return games;
+  }
+
+  Future<Map<String, dynamic>?> getGameById(int id) async {
+    var database = await db;
+    String sql = "SELECT * FROM game WHERE id = ?;";
+    List<Map<String, dynamic>> games = await database.rawQuery(sql, [id]);
+    if (games.isEmpty) return null;
+    return games.first;
+  }
+
+  Future<List<Map<String, dynamic>>> searchGamesByReleaseDate(String startDate, String endDate) async {
+    var database = await db;
+    String sql = "SELECT * FROM game WHERE release_date BETWEEN ? AND ?;";
+    List<Map<String, dynamic>> games = await database.rawQuery(sql, [startDate, endDate]);
+    return games;
+  }
+
+  Future<List<Map<String, dynamic>>> searchGamesByGenre(int genreId) async {
+    var database = await db;
+    String sql = """
+      SELECT g.*
+      FROM game g
+      INNER JOIN game_genre gg ON g.id = gg.game_id
+      WHERE gg.genre_id = ?;
+    """;
+    List<Map<String, dynamic>> games = await database.rawQuery(sql, [genreId]);
+    return games;
+  }
+
+  Future<List<Map<String, dynamic>>> searchGamesByReviewRating(double minRating, double maxRating) async {
+    var database = await db;
+    String sql = """
+      SELECT g.*
+      FROM game g
+      INNER JOIN review r ON g.id = r.game_id
+      WHERE r.score BETWEEN ? AND ?
+      GROUP BY g.id
+      HAVING AVG(r.score) >= ?
+    """;
+    List<Map<String, dynamic>> games = await database.rawQuery(sql, [minRating, maxRating, minRating]);
+    return games;
+  }
+
 }
