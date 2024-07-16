@@ -21,17 +21,7 @@ class DatabaseHelper {
     return _db ??= await initDb();
   }
 
-  Future<void> deleteDatabase() async {
-    final io.Directory appDocumentsDir = await getApplicationDocumentsDirectory();
-    String path = p.join(appDocumentsDir.path, "databases", "app.db");
-    if (await io.File(path).exists()) {
-      await io.File(path).delete();
-    }
-  }
-
   Future<Database> initDb() async {
-    await deleteDatabase();
-
     sqfliteFfiInit();
 
     var databaseFactory = databaseFactoryFfi;

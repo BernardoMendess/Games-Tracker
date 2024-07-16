@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:login_app/controller/login_controller.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:login_app/controller/game_controller.dart';
 import 'package:login_app/model/game.dart';
-import 'dart:async';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:login_app/view/login.dart';
+import 'package:login_app/view/gameDetails.dart';
+import 'package:login_app/view/reviewRecents.dart';
 
 class Home extends StatefulWidget {
   final String username;
@@ -17,8 +19,11 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   List<Game> gameList = [];
   TextEditingController gameController = TextEditingController();
-  TextEditingController gameController2 = TextEditingController();
+  int idUsuario = 0;
   var _db = GameController();
+
+  String? selectedGenre;
+  double? selectedReviewRating;
 
   @override
   void initState() {
@@ -26,40 +31,25 @@ class _HomeState extends State<Home> {
     getGames();
   }
 
-  Widget buildGamesList() {
-    if (widget.username.isNotEmpty) {
-      return ListView.builder(
-        itemCount: gameList.length,
-        itemBuilder: gameItemBuild,
-      );
-    } else {
-      return Container(
-        alignment: Alignment.center,
-        child: Text('Lista dos últimos jogos com nota aqui'),
-      );
-    }
-  }
-
   Widget gameItemBuild(BuildContext context, int index) {
-    return Dismissible(
-      key: Key(DateTime.now().microsecondsSinceEpoch.toString()),
-      direction: DismissDirection.horizontal,
-      onDismissed: (direction) {
-        var lastRemovedGame;
+    TextEditingController gameController = TextEditingController();
 
+    return Dismissible(
+      key: Key(gameList[index].id.toString()),
+      direction: DismissDirection.horizontal,
+      onDismissed: (DismissDirection direction) {
         if (direction == DismissDirection.startToEnd) {
-          // Atualizar Jogo
-          gameController2.text = gameList[index].name!;
+          gameController.text = gameList[index].name ?? '';
 
           showDialog(
             context: context,
-            builder: (context) {
+            builder: (BuildContext context) {
               return AlertDialog(
-                title: Text("Atualizar Game"),
+                title: Text("Editar Jogo"),
                 content: TextField(
                   keyboardType: TextInputType.text,
-                  decoration: InputDecoration(labelText: "Digite o nome"),
-                  controller: gameController2,
+                  decoration: InputDecoration(labelText: "Digite o nome do jogo"),
+                  controller: gameController,
                 ),
                 actions: [
                   TextButton(
@@ -70,12 +60,9 @@ class _HomeState extends State<Home> {
                   ),
                   TextButton(
                     child: Text("Atualizar"),
-                    onPressed: () {
-                      Game game = gameList[index];
-                      String gameStr = gameController2.text;
-                      game.name = gameStr;
-                      updateGame(game);
-
+                    onPressed: () async {
+                      gameList[index].name = gameController.text;
+                      updateGame(gameList[index]);
                       Navigator.pop(context);
                     },
                   ),
@@ -84,10 +71,9 @@ class _HomeState extends State<Home> {
             },
           );
         } else if (direction == DismissDirection.endToStart) {
-          // Excluindo o Jogo
-          lastRemovedGame = gameList[index];
+          Game removedGame = gameList[index];
           gameList.removeAt(index);
-          bool isExecuted = false;
+          deleteGame(removedGame.id!);
 
           final snackBar = SnackBar(
             content: Text("Jogo excluído!"),
@@ -95,19 +81,14 @@ class _HomeState extends State<Home> {
             action: SnackBarAction(
               label: "Desfazer",
               onPressed: () {
-                isExecuted = true;
                 setState(() {
-                  gameList.insert(index, lastRemovedGame);
+                  gameList.insert(index, removedGame);
                 });
               },
             ),
           );
 
           ScaffoldMessenger.of(context).showSnackBar(snackBar);
-
-          Timer(Duration(seconds: 5), () {
-            if (!isExecuted) deleteGame(lastRemovedGame.id!);
-          });
         }
       },
       background: Container(
@@ -116,7 +97,7 @@ class _HomeState extends State<Home> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Icon(Icons.edit, color: Colors.white),
+            Icon(Icons.edit, color: Colors.white,),
           ],
         ),
       ),
@@ -126,14 +107,21 @@ class _HomeState extends State<Home> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Icon(Icons.delete, color: Colors.white),
+            Icon(Icons.delete, color: Colors.white,),
           ],
         ),
       ),
       child: ListTile(
-        title: Text(gameList[index].name!),
+        title: Text(gameList[index].name ?? ''),
         onTap: () {
-          // Detalhes do jogo
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => GameDetails(game: gameList[index]),
+            ),
+          ).then((value) {
+            getGames();
+          });
         },
       ),
     );
@@ -150,14 +138,9 @@ class _HomeState extends State<Home> {
   }
 
   void getGames() async {
-    List games = await _db.getGames();
-    print("games: ${games.toString()}");
-
+    List<Game> games = await _db.getGames();
     gameList.clear();
-    for (var gameMap in games) {
-      Game game = Game.fromMap(gameMap);
-      gameList.add(game);
-    }
+    gameList.addAll(games);
 
     setState(() {});
   }
@@ -174,6 +157,7 @@ class _HomeState extends State<Home> {
     print("Deleted: $id");
     getGames();
   }
+
 
   void _logout() async {
     bool confirmLogout = await showDialog(
@@ -209,6 +193,19 @@ class _HomeState extends State<Home> {
     }
   }
 
+  Widget buildGamesList() {
+    if (widget.username.isNotEmpty) {
+      return ListView.builder(
+        itemCount: gameList.length,
+        itemBuilder: (context, index) => gameItemBuild(context, index),
+      );
+    } else {
+      return Container(
+        alignment: Alignment.center,
+        child: Text('Lista dos últimos jogos com nota aqui'),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -225,42 +222,45 @@ class _HomeState extends State<Home> {
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: widget.username.isNotEmpty ? FloatingActionButton(
-        child: Icon(Icons.add),
-        backgroundColor: Colors.black,
-        onPressed: () {
-          gameController.clear();
+      floatingActionButton: widget.username.isNotEmpty
+          ? FloatingActionButton(
+              child: Icon(Icons.add),
+              backgroundColor: Colors.black,
+              onPressed: () {
+                gameController.clear();
 
-          showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                title: Text("Adicionar Game"),
-                content: TextField(
-                  keyboardType: TextInputType.text,
-                  decoration: InputDecoration(labelText: "Digite o nome do jogo"),
-                  controller: gameController,
-                ),
-                actions: [
-                  TextButton(
-                    child: Text("Cancelar"),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                  TextButton(
-                    child: Text("Salvar"),
-                    onPressed: () {
-                      _insertGame();
-                      Navigator.pop(context);
-                    },
-                  ),
-                ],
-              );
-            },
-          );
-        },
-      ) : null,
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: Text("Adicionar Game"),
+                      content: TextField(
+                        keyboardType: TextInputType.text,
+                        decoration:
+                            InputDecoration(labelText: "Digite o nome do jogo"),
+                        controller: gameController,
+                      ),
+                      actions: [
+                        TextButton(
+                          child: Text("Cancelar"),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                        ),
+                        TextButton(
+                          child: Text("Salvar"),
+                          onPressed: () {
+                            _insertGame();
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            )
+          : null,
       body: Container(
         padding: EdgeInsets.all(16),
         child: Column(
@@ -271,24 +271,37 @@ class _HomeState extends State<Home> {
               children: [
                 ElevatedButton(
                   onPressed: () {
+                    // Filtrar por data de lançamento
                   },
                   child: Text('Data de Lançamento'),
                 ),
                 ElevatedButton(
                   onPressed: () {
+                    // Filtrar por gênero
                   },
                   child: Text('Gênero'),
                 ),
                 ElevatedButton(
                   onPressed: () {
+                    // Filtrar por nota da review
                   },
                   child: Text('Nota da Review'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => RecentReviews()),
+                    );
+                  },
+                  child: Text('Reviews Recentes'),
                 ),
               ],
             ),
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
+                getFilteredGames();
               },
               child: Text('Buscar Jogos'),
             ),
@@ -301,4 +314,7 @@ class _HomeState extends State<Home> {
       ),
     );
   }
+}
+
+void getFilteredGames() {
 }
