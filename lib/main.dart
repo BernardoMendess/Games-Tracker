@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'view/home.dart';
 import 'view/login.dart';
 
 final routes = {

@@ -47,15 +47,9 @@ class _LoginState extends State<Login> {
 
     if (form!.validate()) {      
       form.save();
-      
-      /*User user = User(username: _username!, password: _password!);
-
-      int id = await controller.saveUser(user);
-      print("Saved: $id");  */
-
 
       try{
-        User user = await controller.getLogin(_username!, _password!);
+        User user = await controller.getLogin(_username, _password);
         if (user.id != -1) {
           savePref(1, user.username, user.password);
           _loginStatus = LoginStatus.signIn;
