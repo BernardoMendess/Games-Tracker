@@ -25,4 +25,9 @@ class GameController {
   Future<int> deleteGame(int id) async {
     return await _dbHelper.deleteGame(id);
   }
+
+  Future<List<Game>> getGamesByUserId(int id) async{
+    List<Map<String, dynamic>> maps = await _dbHelper.getGamesByUserId(id);
+    return maps.map((map) => Game.fromMap(map)).toList();  
+  }
 }
