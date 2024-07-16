@@ -11,7 +11,7 @@ class Register extends StatefulWidget {
 
 class _RegisterState extends State<Register> {
   final _formKey = GlobalKey<FormState>();
-  String _username = "", _password = "";
+  String _username = "", _email = "", _password = "";
   late RegisterController controller;
 
   _RegisterState() {
@@ -25,13 +25,13 @@ class _RegisterState extends State<Register> {
       form.save();
 
       try {
-        User user = User(username: _username, password: _password);
+        User user = User(username: _username, email: _email, password: _password);
         int id = await controller.saveUser(user);
         if (id != -1) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('User registered successfully!')),
           );
-          Navigator.pop(context);  // Navega de volta para a tela de login
+          Navigator.pop(context);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Registration failed!')),
@@ -61,10 +61,20 @@ class _RegisterState extends State<Register> {
                 child: Column(
                   children: [
                     TextFormField(
-                      onSaved: (newVal) => _username = newVal!,
+                      onSaved: (newVal) => _email = newVal!,
                       decoration: InputDecoration(
-                        labelText: "Username",
+                        labelText: "E-mail",
                         border: OutlineInputBorder(),
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(top: 20, bottom: 20),
+                      child: TextFormField(
+                        onSaved: (newVal) => _username = newVal!,
+                        decoration: InputDecoration(
+                          labelText: "Username",
+                          border: OutlineInputBorder(),
+                        ),
                       ),
                     ),
                     Padding(

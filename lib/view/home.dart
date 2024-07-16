@@ -31,7 +31,65 @@ class _HomeState extends State<Home> {
     loadGames();
   }
 
-  Future<void> loadGames() async {
+  void _insertGame() async {
+    String gameStr = gameController.text;
+    int? userId = await _lc.getUserIdByUsername(widget.username);
+
+    Game game = Game(userId, gameStr, "2023-01-01", "Descrição do jogo");
+    int result = await _db.insertGame(game);
+    print("Inserted: $result");
+
+    loadGames();
+  }
+
+  void updateGame(Game game) async {
+    int result = await _db.updateGame(game);
+
+    print("Updated: $result");
+    loadGames();
+  }
+
+  void deleteGame(int id) async {
+    int result = await _db.deleteGame(id);
+    print("Deleted: $id");
+    loadGames();
+  }
+
+  void _logout() async {
+    bool confirmLogout = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Confirmação'),
+        content: Text('Tem certeza que deseja sair?'),
+        actions: <Widget>[
+          TextButton(
+            child: Text('Cancelar'),
+            onPressed: () {
+              Navigator.of(context).pop(false);
+            },
+          ),
+          TextButton(
+            child: Text('Sair'),
+            onPressed: () {
+              Navigator.of(context).pop(true);
+            },
+          ),
+        ],
+      ),
+    );
+
+    if (confirmLogout) {
+      SharedPreferences preferences = await SharedPreferences.getInstance();
+      preferences.clear();
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => Login()),
+      );
+    }
+  }
+
+  loadGames() async {
     List<Game> games;
     int? userId = await _lc.getUserIdByUsername(widget.username);
 
@@ -140,64 +198,6 @@ class _HomeState extends State<Home> {
         },
       ),
     );
-  }
-
-  void _insertGame() async {
-    String gameStr = gameController.text;
-    int? userId = await _lc.getUserIdByUsername(widget.username);
-
-    Game game = Game(userId, gameStr, "2023-01-01", "Descrição do jogo");
-    int result = await _db.insertGame(game);
-    print("Inserted: $result");
-
-    loadGames();
-  }
-
-  void updateGame(Game game) async {
-    int result = await _db.updateGame(game);
-
-    print("Updated: $result");
-    loadGames();
-  }
-
-  void deleteGame(int id) async {
-    int result = await _db.deleteGame(id);
-    print("Deleted: $id");
-    loadGames();
-  }
-
-  void _logout() async {
-    bool confirmLogout = await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Confirmação'),
-        content: Text('Tem certeza que deseja sair?'),
-        actions: <Widget>[
-          TextButton(
-            child: Text('Cancelar'),
-            onPressed: () {
-              Navigator.of(context).pop(false);
-            },
-          ),
-          TextButton(
-            child: Text('Sair'),
-            onPressed: () {
-              Navigator.of(context).pop(true);
-            },
-          ),
-        ],
-      ),
-    );
-
-    if (confirmLogout) {
-      SharedPreferences preferences = await SharedPreferences.getInstance();
-      preferences.clear();
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => Login()),
-      );
-    }
   }
 
   Widget buildGamesList() {

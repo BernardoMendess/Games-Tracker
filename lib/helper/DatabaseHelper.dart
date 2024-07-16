@@ -38,6 +38,7 @@ class DatabaseHelper {
             CREATE TABLE user(
               id INTEGER PRIMARY KEY AUTOINCREMENT,
               username VARCHAR NOT NULL,
+              email VARCHAR NOT NULL,
               password VARCHAR NOT NULL
             );
           """);
