@@ -122,6 +122,16 @@ class DatabaseHelper {
     return result;
   }
 
+  Future<int?> getUserIdByUsername(String username) async {
+    var database = await db;
+    String sql = "SELECT id FROM user WHERE username = ?;";
+    List<Map<String, dynamic>> result = await database.rawQuery(sql, [username]);
+    if (result.isNotEmpty) {
+      return result.first['id'] as int;
+    }
+    return null;
+  }
+
   Future<int> insertGenre(Genre genre) async {
     var database = await db;
     int result = await database.insert("genre", genre.toMap());

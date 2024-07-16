@@ -19,8 +19,8 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   List<Game> gameList = [];
   TextEditingController gameController = TextEditingController();
-  int idUsuario = 0;
   var _db = GameController();
+  var _lc = LoginController();
 
   String? selectedGenre;
   double? selectedReviewRating;
@@ -28,7 +28,22 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-    getGames();
+    loadGames();
+  }
+
+  Future<void> loadGames() async {
+    List<Game> games;
+    int? userId = await _lc.getUserIdByUsername(widget.username);
+
+    if (userId != null) {
+      games = await _db.getGamesByUserId(userId);
+    } else {
+      games = await _db.getLastestGames();
+    }
+
+    setState(() {
+      gameList = games;
+    });
   }
 
   Widget gameItemBuild(BuildContext context, int index) {
@@ -120,7 +135,7 @@ class _HomeState extends State<Home> {
               builder: (context) => GameDetails(game: gameList[index]),
             ),
           ).then((value) {
-            getGames();
+            loadGames();
           });
         },
       ),
@@ -129,35 +144,27 @@ class _HomeState extends State<Home> {
 
   void _insertGame() async {
     String gameStr = gameController.text;
+    int? userId = await _lc.getUserIdByUsername(widget.username);
 
-    Game game = Game(1, gameStr, "2023-01-01", "Descrição do jogo");
+    Game game = Game(userId, gameStr, "2023-01-01", "Descrição do jogo");
     int result = await _db.insertGame(game);
     print("Inserted: $result");
 
-    getGames();
-  }
-
-  void getGames() async {
-    List<Game> games = await _db.getGames();
-    gameList.clear();
-    gameList.addAll(games);
-
-    setState(() {});
+    loadGames();
   }
 
   void updateGame(Game game) async {
     int result = await _db.updateGame(game);
 
     print("Updated: $result");
-    getGames();
+    loadGames();
   }
 
   void deleteGame(int id) async {
     int result = await _db.deleteGame(id);
     print("Deleted: $id");
-    getGames();
+    loadGames();
   }
-
 
   void _logout() async {
     bool confirmLogout = await showDialog(
@@ -194,17 +201,10 @@ class _HomeState extends State<Home> {
   }
 
   Widget buildGamesList() {
-    if (widget.username.isNotEmpty) {
-      return ListView.builder(
-        itemCount: gameList.length,
-        itemBuilder: (context, index) => gameItemBuild(context, index),
-      );
-    } else {
-      return Container(
-        alignment: Alignment.center,
-        child: Text('Lista dos últimos jogos com nota aqui'),
-      );
-    }
+    return ListView.builder(
+      itemCount: gameList.length,
+      itemBuilder: (context, index) => gameItemBuild(context, index),
+    );
   }
 
   @override
@@ -314,7 +314,8 @@ class _HomeState extends State<Home> {
       ),
     );
   }
-}
 
-void getFilteredGames() {
+  void getFilteredGames() {
+    // Adicione aqui a lógica de filtro
+  }
 }

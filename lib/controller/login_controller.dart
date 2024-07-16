@@ -42,5 +42,10 @@ class LoginController {
         
     return list;
   }
+
+  Future<int?> getUserIdByUsername(String username) async {
+    var userId = await con.getUserIdByUsername(username);
+    return userId;
+  }
   
 }
