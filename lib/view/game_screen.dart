@@ -155,9 +155,9 @@ class _GameScreenState extends State<GameScreen> {
               onPressed: () {
                 _addReviewDialog();
               },
-              label: Text('Review'),
+              label: Text('Review', style: TextStyle(color: Colors.black)),
               icon: Icon(Icons.rate_review),
-              backgroundColor: Color.fromARGB(255, 230, 137, 137),
+              backgroundColor: Color.fromARGB(255, 182, 235, 175),
             )
           : null,
     );
