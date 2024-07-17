@@ -40,4 +40,19 @@ class GameController {
     Map<String, dynamic>? map = await _dbHelper.getGameById(id);
     return Game.fromMap(map!);
   }
+
+  Future<List<Game>> searchGamesByReleaseDate(String startDate, String endDate) async {
+    List<Map<String, dynamic>> maps = await _dbHelper.searchGamesByReleaseDate(startDate, endDate);
+    return maps.map((map) => Game.fromMap(map)).toList();
+  }
+
+  Future<List<Game>> searchGamesByGenre(int genreId) async {
+    List<Map<String, dynamic>> maps = await _dbHelper.searchGamesByGenre(genreId);
+    return maps.map((map) => Game.fromMap(map)).toList();
+  }
+
+  Future<List<Game>> searchGamesByReviewRating(double minRating, double maxRating) async {
+    List<Map<String, dynamic>> maps = await _dbHelper.searchGamesByReviewRating(minRating, maxRating);
+    return maps.map((map) => Game.fromMap(map)).toList();
+  }
 }

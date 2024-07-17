@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:login_app/controller/genre_controller.dart';
 import 'package:login_app/controller/login_controller.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:login_app/controller/game_controller.dart';
 import 'package:login_app/model/game.dart';
+import 'package:login_app/model/genre.dart';
 import 'package:login_app/view/login.dart';
+import 'package:login_app/view/recent_reviews.dart';
 import 'package:login_app/view/game_screen.dart';
-import 'package:login_app/view/reviewRecents.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Home extends StatefulWidget {
   final String username;
@@ -18,9 +20,15 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   List<Game> gameList = [];
+  List<Genre> genreList = [];
   TextEditingController gameController = TextEditingController();
+  TextEditingController releaseDateController = TextEditingController();
+  TextEditingController descriptionController = TextEditingController();
+  TextEditingController startDateController = TextEditingController();
+  TextEditingController endDateController = TextEditingController();
   var _db = GameController();
   var _lc = LoginController();
+  var _gc = GenreController();
 
   String? selectedGenre;
   double? selectedReviewRating;
@@ -29,29 +37,27 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     loadGames();
+    getGenres();
   }
 
   void _insertGame() async {
     String gameStr = gameController.text;
+    String dataStr = releaseDateController.text;
+    String descriptionStr = descriptionController.text;
     int? userId = await _lc.getUserIdByUsername(widget.username);
 
-    Game game = Game(userId, gameStr, "2023-01-01", "Descrição do jogo");
+    Game game = Game(userId, gameStr, dataStr, descriptionStr);
     int result = await _db.insertGame(game);
-    print("Inserted: $result");
-
     loadGames();
   }
 
   void updateGame(Game game) async {
     int result = await _db.updateGame(game);
-
-    print("Updated: $result");
     loadGames();
   }
 
   void deleteGame(int id) async {
     int result = await _db.deleteGame(id);
-    print("Deleted: $id");
     loadGames();
   }
 
@@ -92,15 +98,18 @@ class _HomeState extends State<Home> {
   loadGames() async {
     List<Game> games;
     int? userId = await _lc.getUserIdByUsername(widget.username);
-
-    if (userId != null) {
-      games = await _db.getGamesByUserId(userId);
-    } else {
-      games = await _db.getLastestGames();
-    }
+    games = userId != null ? await _db.getGamesByUserId(userId) : await _db.getLastestGames();
 
     setState(() {
       gameList = games;
+    });
+  }
+
+  void getGenres() async {
+    List<Genre> genres = await _gc.getGenres();
+
+    setState(() {
+      genreList = genres;
     });
   }
 
@@ -190,7 +199,7 @@ class _HomeState extends State<Home> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => GameScreen(gameId: index,),
+              builder: (context) => GameScreen(userId: gameList[index].userId!, gameId: gameList[index].id!),
             ),
           ).then((value) {
             loadGames();
@@ -205,6 +214,45 @@ class _HomeState extends State<Home> {
       itemCount: gameList.length,
       itemBuilder: (context, index) => gameItemBuild(context, index),
     );
+  }
+
+  void getFilteredGames() async {
+    List<Game> filteredGames = [];
+
+    if (selectedGenre != null) {
+      int genreId = int.parse(selectedGenre!);
+      filteredGames = await _db.searchGamesByGenre(genreId);
+    } else if (selectedReviewRating != null) {
+      double minRating = selectedReviewRating!;
+      double maxRating = selectedReviewRating! + 0.99;
+      filteredGames = await _db.searchGamesByReviewRating(minRating, maxRating);
+    } else {
+      String startDateStr = startDateController.text;
+      String endDateStr = endDateController.text;
+
+      if (startDateStr.isNotEmpty && endDateStr.isNotEmpty) {
+        DateTime startDate = DateTime.parse(startDateStr);
+        DateTime endDate = DateTime.parse(endDateStr);
+
+        filteredGames = await _db.searchGamesByReleaseDate(startDate.toString(), endDate.toString());
+      }
+    }
+
+    setState(() {
+      gameList = filteredGames;
+    });
+  }
+
+  void selectGenre(String genreId) {
+    setState(() {
+      selectedGenre = genreId;
+    });
+  }
+
+  void selectReviewRating(double rating) {
+    setState(() {
+      selectedReviewRating = rating;
+    });
   }
 
   @override
@@ -225,20 +273,38 @@ class _HomeState extends State<Home> {
       floatingActionButton: widget.username.isNotEmpty
           ? FloatingActionButton(
               child: Icon(Icons.add),
-              backgroundColor: Colors.black,
+              backgroundColor: Color.fromARGB(255, 230, 137, 137),
               onPressed: () {
                 gameController.clear();
+                releaseDateController.clear();
+                descriptionController.clear();
 
                 showDialog(
                   context: context,
                   builder: (context) {
                     return AlertDialog(
                       title: Text("Adicionar Game"),
-                      content: TextField(
-                        keyboardType: TextInputType.text,
-                        decoration:
-                            InputDecoration(labelText: "Digite o nome do jogo"),
-                        controller: gameController,
+                      content: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            TextField(
+                              keyboardType: TextInputType.text,
+                              decoration: InputDecoration(labelText: "Digite o nome do jogo"),
+                              controller: gameController,
+                            ),
+                            TextField(
+                              keyboardType: TextInputType.datetime,
+                              decoration: InputDecoration(labelText: "Data de Lançamento"),
+                              controller: releaseDateController,
+                            ),
+                            TextField(
+                              keyboardType: TextInputType.multiline,
+                              decoration: InputDecoration(labelText: "Descrição"),
+                              controller: descriptionController,
+                            ),
+                          ],
+                        ),
                       ),
                       actions: [
                         TextButton(
@@ -271,19 +337,101 @@ class _HomeState extends State<Home> {
               children: [
                 ElevatedButton(
                   onPressed: () {
-                    // Filtrar por data de lançamento
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text('Data de Lançamento'),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextField(
+                                keyboardType: TextInputType.datetime,
+                                decoration: InputDecoration(labelText: "Data de Início (YYYY-MM-DD)"),
+                                controller: startDateController,
+                              ),
+                              TextField(
+                                keyboardType: TextInputType.datetime,
+                                decoration: InputDecoration(labelText: "Data de Fim (YYYY-MM-DD)"),
+                                controller: endDateController,
+                              ),
+                            ],
+                          ),
+                          actions: [
+                            TextButton(
+                              child: Text("Cancelar"),
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                            ),
+                            TextButton(
+                              child: Text("Buscar"),
+                              onPressed: () {
+                                getFilteredGames();
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
                   },
-                  child: Text('Data de Lançamento'),
+                  child: Text('Buscar por Data de Lançamento'),
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    // Filtrar por gênero
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text('Selecione um Gênero'),
+                          content: DropdownButton<String>(
+                            value: selectedGenre,
+                            onChanged: (String? newValue) {
+                              selectGenre(newValue!);
+                              Navigator.of(context).pop();
+                            },
+                            items: genreList.map<DropdownMenuItem<String>>((Genre genre) {
+                              return DropdownMenuItem<String>(
+                                value: genre.id.toString(),
+                                child: Text(genre.name!),
+                              );
+                            }).toList(),
+                          ),
+                        );
+                      },
+                    );
                   },
                   child: Text('Gênero'),
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    // Filtrar por nota da review
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text('Selecione um Intervalo de Nota da Review'),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ...[1.0, 2.0, 3.0, 4.0, 5.0].map((rating) {
+                                return RadioListTile<double>(
+                                  title: Text('$rating - ${(rating + 0.99).toStringAsFixed(2)}'),
+                                  value: rating,
+                                  groupValue: selectedReviewRating,
+                                  onChanged: (double? newValue) {
+                                    if (newValue != null) {
+                                      selectReviewRating(newValue);
+                                    }
+                                    Navigator.of(context).pop();
+                                  },
+                                );
+                              }).toList(),
+                            ],
+                          ),
+                        );
+                      },
+                    );
                   },
                   child: Text('Nota da Review'),
                 ),
@@ -313,9 +461,5 @@ class _HomeState extends State<Home> {
         ),
       ),
     );
-  }
-
-  void getFilteredGames() {
-    // Adicione aqui a lógica de filtro
   }
 }
