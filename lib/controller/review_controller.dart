@@ -25,4 +25,9 @@ class ReviewController {
   Future<int> deleteReview(int id) async {
     return await _dbHelper.deleteReview(id);
   }
+
+  Future<List<Review>> getReviewsByGameId(int id) async{
+    List<Map<String, dynamic>> maps = await _dbHelper.getReviewsByGameId(id);
+    return maps.map((map) => Review.fromMap(map)).toList();
+  }
 }

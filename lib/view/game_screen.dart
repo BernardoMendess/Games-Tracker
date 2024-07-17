@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:login_app/controller/game_controller.dart';
 import 'package:login_app/controller/review_controller.dart';
 import 'package:login_app/model/game.dart';
@@ -17,26 +18,33 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> {
   List<Review> reviewList = [];
   TextEditingController reviewController = TextEditingController();
+  TextEditingController ratingController = TextEditingController();
   var _db = GameController();
   var _rc = ReviewController();
 
   @override
   void initState() {
     super.initState();
+    loadReviews();
   }
 
   void _insertReview() async {
     String reviewStr = reviewController.text;
+    double rating = double.parse(ratingController.text);
 
     if (widget.userId != null) {
-      Review review = Review(widget.userId, widget.gameId, 5, "", reviewStr);
+      Review review = Review(widget.userId!, widget.gameId, rating, DateTime.now().toString(), reviewStr);
       int result = await _rc.insertReview(review);
-      loadReviews();
+      if (result != 0) {
+        reviewController.clear();
+        ratingController.clear();
+        loadReviews();
+      }
     }
   }
 
   void loadReviews() async {
-    List<Review> reviews = await _rc.getReviews();
+    List<Review> reviews = await _rc.getReviewsByGameId(widget.gameId);
 
     setState(() {
       reviewList = reviews;
@@ -76,6 +84,24 @@ class _GameScreenState extends State<GameScreen> {
                 Text('Descrição: ${game.description}'),
                 SizedBox(height: 8),
                 Text('Data de Lançamento: ${game.releaseDate}'),
+                SizedBox(height: 16),
+                Text(
+                  'Reviews:',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 8),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: reviewList.length,
+                    itemBuilder: (context, index) {
+                      final review = reviewList[index];
+                      return ListTile(
+                        title: Text('Nota: ${review.score}'),
+                        subtitle: Text(review.description!),
+                      );
+                    },
+                  ),
+                ),
               ],
             ),
           );
@@ -98,13 +124,25 @@ class _GameScreenState extends State<GameScreen> {
       builder: (context) {
         return AlertDialog(
           title: Text('Adicionar Review'),
-          content: TextField(
-            keyboardType: TextInputType.multiline,
-            maxLines: null,
-            controller: reviewController,
-            decoration: InputDecoration(
-              hintText: 'Escreva sua review aqui...',
-            ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: ratingController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  hintText: 'Nota (0-10)',
+                ),
+              ),
+              TextField(
+                keyboardType: TextInputType.multiline,
+                maxLines: null,
+                controller: reviewController,
+                decoration: InputDecoration(
+                  hintText: 'Escreva sua review aqui...',
+                ),
+              ),
+            ],
           ),
           actions: [
             TextButton(

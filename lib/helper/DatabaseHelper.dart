@@ -51,6 +51,17 @@ class DatabaseHelper {
           """);
 
           await db.execute("""
+            INSERT INTO genre(name) VALUES('Aventura');
+            INSERT INTO genre(name) VALUES('Ação');
+            INSERT INTO genre(name) VALUES('RPG');
+            INSERT INTO genre(name) VALUES('Plataforma');
+            INSERT INTO genre(name) VALUES('Metroidvania');
+            INSERT INTO genre(name) VALUES('Rogue Lite');
+            INSERT INTO genre(name) VALUES('Survival Horror');
+            INSERT INTO genre(name) VALUES('Mundo Aberto');
+          """);
+
+          await db.execute("""
             CREATE TABLE game(
               id INTEGER PRIMARY KEY AUTOINCREMENT,
               user_id INTEGER NOT NULL,
@@ -69,7 +80,7 @@ class DatabaseHelper {
               FOREIGN KEY(genre_id) REFERENCES genre(id)
             );
           """);
-
+  
           await db.execute("""
             CREATE TABLE review(
               id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -133,38 +144,11 @@ class DatabaseHelper {
     return null;
   }
 
-  Future<int> insertGenre(Genre genre) async {
-    var database = await db;
-    int result = await database.insert("genre", genre.toMap());
-    return result;
-  }
-
   Future<List<Map<String, dynamic>>> getGenres() async {
     var database = await db;
     String sql = "SELECT * FROM genre;";
     List<Map<String, dynamic>> genres = await database.rawQuery(sql);
     return genres;
-  }
-
-  Future<int> updateGenre(Genre genre) async {
-    var database = await db;
-    int result = await database.update(
-      "genre",
-      genre.toMap(),
-      where: "id = ?",
-      whereArgs: [genre.id]
-    );
-    return result;
-  }
-
-  Future<int> deleteGenre(int id) async {
-    var database = await db;
-    int result = await database.delete(
-      "genre",
-      where: "id = ?",
-      whereArgs: [id]
-    );
-    return result;
   }
 
   Future<int> insertGame(Game game) async {
@@ -311,6 +295,13 @@ class DatabaseHelper {
     """;
     List<Map<String, dynamic>> games = await database.rawQuery(sql, [minRating, maxRating, minRating]);
     return games;
+  }
+
+  Future<List<Map<String, dynamic>>> getReviewsByGameId(int gameId) async {
+    var database = await db;
+    String sql = "SELECT * FROM review WHERE game_id = ?;";
+    List<Map<String, dynamic>> reviews = await database.rawQuery(sql, [gameId]);
+    return reviews;
   }
 
 }
