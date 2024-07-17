@@ -93,6 +93,12 @@ class DatabaseHelper {
               FOREIGN KEY(game_id) REFERENCES game(id)
             );
           """);
+
+          await db.execute("""
+INSERT INTO game(user_id, name, description, release_date) VALUES(1, 'God of War', 'O jogo começa após a morte da segunda esposa de Kratos e mãe de Atreus, Faye. Seu último desejo era que suas cinzas fossem espalhadas no pico mais alto dos nove reinos nórdicos. Antes de iniciar sua jornada, Kratos é confrontado por um homem misterioso com poderes divinos.', '2018-04-18');
+INSERT INTO game_genre(game_id, genre_id) VALUES(1, 1);
+INSERT INTO review(user_id, game_id, score, description, date) VALUES(1, 1, 9.5, 'Teste', '2024-06-20');
+""");
         }
       )
     );
@@ -154,14 +160,14 @@ class DatabaseHelper {
   Future<Map<String, dynamic>> getGenreById(int id) async {
     var database = await db;
     String sql = "SELECT * FROM genre WHERE id = ?;";
-    List<Map<String, dynamic>> genre = await database.rawQuery(sql);
+    List<Map<String, dynamic>> genre = await database.rawQuery(sql, [id]);
     return genre.first;
   }
 
   Future<Map<String, dynamic>> getGameGenreById(int id) async {
     var database = await db;
     String sql = "SELECT * FROM game_genre WHERE game_id = ?;";
-    List<Map<String, dynamic>> gameGenre = await database.rawQuery(sql);
+    List<Map<String, dynamic>> gameGenre = await database.rawQuery(sql, [id]);
     return gameGenre.first;
   }
 
