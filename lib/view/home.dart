@@ -4,6 +4,7 @@ import 'package:login_app/controller/login_controller.dart';
 import 'package:login_app/controller/game_controller.dart';
 import 'package:login_app/model/game.dart';
 import 'package:login_app/model/genre.dart';
+import 'package:login_app/view/edit_game_screen.dart';
 import 'package:login_app/view/login.dart';
 import 'package:login_app/view/recent_reviews.dart';
 import 'package:login_app/view/game_screen.dart';
@@ -49,11 +50,6 @@ class _HomeState extends State<Home> {
 
     Game game = Game(userId, gameStr, dataStr, descriptionStr);
     int result = await _db.insertGame(game, genreId);
-    loadGames();
-  }
-
-  void updateGame(Game game) async {
-    int result = await _db.updateGame(game);
     loadGames();
   }
 
@@ -115,76 +111,30 @@ class _HomeState extends State<Home> {
   }
 
   Widget gameItemBuild(BuildContext context, int index) {
-    TextEditingController gameController = TextEditingController();
-
     return Dismissible(
       key: Key(gameList[index].id.toString()),
-      direction: DismissDirection.horizontal,
+      direction: DismissDirection.endToStart,
       onDismissed: (DismissDirection direction) {
-        if (direction == DismissDirection.startToEnd) {
-          gameController.text = gameList[index].name ?? '';
+        Game removedGame = gameList[index];
+        gameList.removeAt(index);
+        deleteGame(removedGame.id!);
 
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text("Editar Jogo"),
-                content: TextField(
-                  keyboardType: TextInputType.text,
-                  decoration: InputDecoration(labelText: "Digite o nome do jogo"),
-                  controller: gameController,
-                ),
-                actions: [
-                  TextButton(
-                    child: Text("Cancelar"),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                  TextButton(
-                    child: Text("Atualizar"),
-                    onPressed: () async {
-                      gameList[index].name = gameController.text;
-                      updateGame(gameList[index]);
-                      Navigator.pop(context);
-                    },
-                  ),
-                ],
-              );
+        final snackBar = SnackBar(
+          content: Text("Jogo excluído!"),
+          duration: Duration(seconds: 5),
+          action: SnackBarAction(
+            label: "Desfazer",
+            onPressed: () {
+              setState(() {
+                gameList.insert(index, removedGame);
+              });
             },
-          );
-        } else if (direction == DismissDirection.endToStart) {
-          Game removedGame = gameList[index];
-          gameList.removeAt(index);
-          deleteGame(removedGame.id!);
+          ),
+        );
 
-          final snackBar = SnackBar(
-            content: Text("Jogo excluído!"),
-            duration: Duration(seconds: 5),
-            action: SnackBarAction(
-              label: "Desfazer",
-              onPressed: () {
-                setState(() {
-                  gameList.insert(index, removedGame);
-                });
-              },
-            ),
-          );
-
-          ScaffoldMessenger.of(context).showSnackBar(snackBar);
-        }
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
       },
       background: Container(
-        color: Colors.green,
-        padding: EdgeInsets.all(16),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Icon(Icons.edit, color: Colors.white,),
-          ],
-        ),
-      ),
-      secondaryBackground: Container(
         color: Colors.red,
         padding: EdgeInsets.all(16),
         child: Row(
@@ -196,6 +146,23 @@ class _HomeState extends State<Home> {
       ),
       child: ListTile(
         title: Text(gameList[index].name ?? ''),
+        trailing: IconButton(
+          icon: Icon(Icons.edit),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => EditGameScreen(game: gameList[index]),
+              ),
+            ).then((updatedGame) {
+              if (updatedGame != null) {
+                setState(() {
+                  gameList[index] = updatedGame;
+                });
+              }
+            });
+          },
+        ),
         onTap: () {
           Navigator.push(
             context,
