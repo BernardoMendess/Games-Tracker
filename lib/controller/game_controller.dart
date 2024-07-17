@@ -61,4 +61,9 @@ class GameController {
     Map<String, dynamic>? map = await _dbHelper.getGameGenreById(id);
     return GameGenre.fromMap(map);
   }
+
+  Future<List<Game>> getGamesNotUser(int userId) async {
+    List<Map<String, dynamic>> maps = await _dbHelper.getGamesNotCreatedByUser(userId);
+    return maps.map((map) => Game.fromMap(map)).toList();
+  }
 }

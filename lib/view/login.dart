@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:login_app/view/register.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../controller/login_controller.dart';
 import '../model/user.dart';
 import 'home.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'register.dart';
 
-enum LoginStatus{ notSignin, signIn }
+enum LoginStatus { notSignin, signIn }
 
 class Login extends StatefulWidget {
-  const Login({super.key});
+  const Login({Key? key}) : super(key: key);
 
   @override
   State<Login> createState() => _LoginState();
 }
 
 class _LoginState extends State<Login> {
-  LoginStatus _loginStatus = LoginStatus.notSignin;  
+  LoginStatus _loginStatus = LoginStatus.notSignin;
   final _formKey = GlobalKey<FormState>();
   String _username = "", _password = "";
   late LoginController controller;
@@ -43,25 +43,27 @@ class _LoginState extends State<Login> {
   }
 
   void _submit() async {
-    final form = _formKey.currentState;    
+    final form = _formKey.currentState;
 
-    if (form!.validate()) {      
+    if (form!.validate()) {
       form.save();
 
-      try{
+      try {
         User user = await controller.getLogin(_username, _password);
         if (user.id != -1) {
           savePref(1, user.username, user.password);
-          _loginStatus = LoginStatus.signIn;
+          setState(() {
+            _loginStatus = LoginStatus.signIn;
+          });
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('User not registered!')),
           );
         }
       } catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(e.toString())),
-          );     
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
       }
     }
   }
@@ -87,19 +89,22 @@ class _LoginState extends State<Login> {
     setState(() {
       value = preferences.getInt("value");
 
-      _loginStatus = value == 1? LoginStatus.signIn : LoginStatus.notSignin;
+      _loginStatus = value == 1 ? LoginStatus.signIn : LoginStatus.notSignin;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     var currentWidget;
-    
-    switch(_loginStatus) {
+
+    switch (_loginStatus) {
       case LoginStatus.notSignin:
         currentWidget = Scaffold(
           appBar: AppBar(
-            title: Text("Login"), backgroundColor: Colors.blue,
+            title: Text("Login",
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Color.fromARGB(255, 99, 179, 99),
           ),
           body: Center(
             child: Container(
@@ -113,46 +118,63 @@ class _LoginState extends State<Login> {
                         TextFormField(
                           onSaved: (newVal) => _username = newVal!,
                           decoration: InputDecoration(
-                            labelText: "Username",
-                            border: OutlineInputBorder()
-                          )
+                              labelText: "Username",
+                              border: OutlineInputBorder()),
                         ),
-
                         Padding(
                           padding: EdgeInsets.only(top: 20, bottom: 20),
                           child: TextFormField(
                             onSaved: (newVal) => _password = newVal!,
                             decoration: InputDecoration(
-                              labelText: "Password",
-                              border: OutlineInputBorder()
-                            )
-                          )
-                        )
-                        
+                                labelText: "Senha",
+                                border: OutlineInputBorder()),
+                            keyboardType: TextInputType.text,
+                            obscureText: true,
+                          ),
+                        ),
                       ],
-                    )
+                    ),
                   ),
-
-                  ElevatedButton(
-                    onPressed: _submit,
-                    child: Text("Login")
+                  Container(
+                    alignment: Alignment.center,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ElevatedButton(
+                          onPressed: _submit,
+                          child: Text(
+                            "Entrar",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color.fromARGB(255, 99, 179, 99),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        ElevatedButton(
+                          onPressed: _cadastrar,
+                          child: Text(
+                            "Cadastrar",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color.fromARGB(255, 99, 179, 99),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-
-                  ElevatedButton(
-                    onPressed: _cadastrar,
-                    child: Text("Cadastrar")
-                  )
                 ],
-              )
-            )
-          )
-
+              ),
+            ),
+          ),
         );
         break;
-      
-      case LoginStatus.signIn:
 
-        currentWidget = Home(username: _username,);
+      case LoginStatus.signIn:
+        currentWidget = Home(
+          username: _username,
+        );
         break;
     }
 

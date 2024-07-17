@@ -5,7 +5,6 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io' as io;
 import '../model/game.dart';
-import '../model/genre.dart';
 import '../model/review.dart';
 import '../model/game_genre.dart';
 
@@ -159,6 +158,13 @@ INSERT INTO review(user_id, game_id, score, description, date) VALUES(4, 1, 9.6,
     return null;
   }
 
+  Future<Map<String, dynamic>> getUserById(int id) async {
+    var database = await db;
+    String sql = "SELECT * FROM user WHERE id = ?;";
+    List<Map<String, dynamic>> result = await database.rawQuery(sql, [id]);
+    return result.first;
+  }
+
   Future<List<Map<String, dynamic>>> getGenres() async {
     var database = await db;
     String sql = "SELECT * FROM genre;";
@@ -213,6 +219,15 @@ INSERT INTO review(user_id, game_id, score, description, date) VALUES(4, 1, 9.6,
       whereArgs: [id]
     );
     return result;
+  }
+
+   Future<List<Map<String, dynamic>>> getGamesNotCreatedByUser(int userId) async {
+    var database = await db;
+    String sql = """
+      SELECT * FROM game WHERE user_id != ?;
+    """;
+    List<Map<String, dynamic>> games = await database.rawQuery(sql, [userId]);
+    return games;
   }
 
   Future<int> insertGameGenre(GameGenre gameGenre) async {
