@@ -6,9 +6,9 @@ import 'package:login_app/model/review.dart';
 
 class GameScreen extends StatefulWidget {
   final int gameId;
-  final int userId;
+  final int? userId;
 
-  const GameScreen({required this.gameId, required this.userId, Key? key}) : super(key: key);
+  const GameScreen({required this.gameId, this.userId, Key? key}) : super(key: key);
 
   @override
   _GameScreenState createState() => _GameScreenState();
@@ -19,24 +19,20 @@ class _GameScreenState extends State<GameScreen> {
   TextEditingController reviewController = TextEditingController();
   var _db = GameController();
   var _rc = ReviewController();
-  bool isLoggedIn = false;
 
   @override
   void initState() {
     super.initState();
-    checkLoginStatus();
-  }
-
-  void checkLoginStatus() {
-    isLoggedIn = widget.userId != null;
   }
 
   void _insertReview() async {
     String reviewStr = reviewController.text;
 
-    Review review = Review(widget.userId, widget.gameId, 5, "", reviewStr);
-    int result = await _rc.insertReview(review);
-    loadReviews();
+    if (widget.userId != null) {
+      Review review = Review(widget.userId, widget.gameId, 5, "", reviewStr);
+      int result = await _rc.insertReview(review);
+      loadReviews();
+    }
   }
 
   void loadReviews() async {
@@ -54,18 +50,18 @@ class _GameScreenState extends State<GameScreen> {
         title: Text('Detalhes do Jogo'),
         backgroundColor: const Color.fromARGB(255, 214, 82, 82),
       ),
-      body: FutureBuilder<Game>(
+      body: FutureBuilder<Game?>(
         future: _db.getGameById(widget.gameId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Erro ao carregar os dados.'));
-          } else if (!snapshot.hasData) {
+          } else if (!snapshot.hasData || snapshot.data == null) {
             return Center(child: Text('Nenhum jogo encontrado.'));
           }
 
-          final game = snapshot.data!;
+          final game = snapshot.requireData!;
 
           return Padding(
             padding: const EdgeInsets.all(16.0),
@@ -85,7 +81,7 @@ class _GameScreenState extends State<GameScreen> {
           );
         },
       ),
-      floatingActionButton: isLoggedIn ? FloatingActionButton.extended(
+      floatingActionButton: widget.userId != null ? FloatingActionButton.extended(
         onPressed: () {
           _addReviewDialog();
         },

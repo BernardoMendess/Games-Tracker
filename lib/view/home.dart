@@ -26,6 +26,7 @@ class _HomeState extends State<Home> {
   TextEditingController descriptionController = TextEditingController();
   TextEditingController startDateController = TextEditingController();
   TextEditingController endDateController = TextEditingController();
+  int? userId = null;
   var _db = GameController();
   var _lc = LoginController();
   var _gc = GenreController();
@@ -44,7 +45,7 @@ class _HomeState extends State<Home> {
     String gameStr = gameController.text;
     String dataStr = releaseDateController.text;
     String descriptionStr = descriptionController.text;
-    int? userId = await _lc.getUserIdByUsername(widget.username);
+    userId = await _lc.getUserIdByUsername(widget.username);
 
     Game game = Game(userId, gameStr, dataStr, descriptionStr);
     int result = await _db.insertGame(game);
@@ -97,8 +98,8 @@ class _HomeState extends State<Home> {
 
   loadGames() async {
     List<Game> games;
-    int? userId = await _lc.getUserIdByUsername(widget.username);
-    games = userId != null ? await _db.getGamesByUserId(userId) : await _db.getLastestGames();
+    userId = await _lc.getUserIdByUsername(widget.username);
+    games = userId != null ? await _db.getGamesByUserId(userId!) : await _db.getLastestGames();
 
     setState(() {
       gameList = games;
@@ -199,7 +200,7 @@ class _HomeState extends State<Home> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => GameScreen(userId: gameList[index].userId!, gameId: gameList[index].id!),
+              builder: (context) => GameScreen(userId: userId, gameId: gameList[index].id!),
             ),
           ).then((value) {
             loadGames();
