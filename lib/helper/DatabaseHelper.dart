@@ -151,9 +151,24 @@ class DatabaseHelper {
     return genres;
   }
 
-  Future<int> insertGame(Game game) async {
+  Future<Map<String, dynamic>> getGenreById(int id) async {
+    var database = await db;
+    String sql = "SELECT * FROM genre WHERE id = ?;";
+    List<Map<String, dynamic>> genre = await database.rawQuery(sql);
+    return genre.first;
+  }
+
+  Future<Map<String, dynamic>> getGameGenreById(int id) async {
+    var database = await db;
+    String sql = "SELECT * FROM game_genre WHERE game_id = ?;";
+    List<Map<String, dynamic>> gameGenre = await database.rawQuery(sql);
+    return gameGenre.first;
+  }
+
+  Future<int> insertGame(Game game, int genreId) async {
     var database = await db;
     int result = await database.insert("game", game.toMap());
+    insertGameGenre(GameGenre(game.id, genreId));
     return result;
   }
 

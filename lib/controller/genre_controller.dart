@@ -13,4 +13,10 @@ class GenreController {
     List<Map<String, dynamic>> maps = await _dbHelper.getGenres();
     return maps.map((map) => Genre.fromMap(map)).toList();
   }
+
+  Future<Genre> getGenreById(int id) async {
+    Map<String, dynamic> map = await _dbHelper.getGenreById(id);
+    return Genre.fromMap(map);
+  }
+
 }

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:login_app/controller/game_controller.dart';
+import 'package:login_app/controller/genre_controller.dart';
 import 'package:login_app/controller/review_controller.dart';
 import 'package:login_app/model/game.dart';
+import 'package:login_app/model/game_genre.dart';
+import 'package:login_app/model/genre.dart';
 import 'package:login_app/model/review.dart';
 
 class GameScreen extends StatefulWidget {
@@ -20,6 +23,7 @@ class _GameScreenState extends State<GameScreen> {
   TextEditingController reviewController = TextEditingController();
   TextEditingController ratingController = TextEditingController();
   var _db = GameController();
+  var _gr = GenreController();
   var _rc = ReviewController();
 
   @override
@@ -71,39 +75,71 @@ class _GameScreenState extends State<GameScreen> {
 
           final game = snapshot.requireData!;
 
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Nome do Jogo: ${game.name}',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 8),
-                Text('Descrição: ${game.description}'),
-                SizedBox(height: 8),
-                Text('Data de Lançamento: ${game.releaseDate}'),
-                SizedBox(height: 16),
-                Text(
-                  'Reviews:',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 8),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: reviewList.length,
-                    itemBuilder: (context, index) {
-                      final review = reviewList[index];
-                      return ListTile(
-                        title: Text('Nota: ${review.score}'),
-                        subtitle: Text(review.description!),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
+          return FutureBuilder<GameGenre>(
+            future: _db.getGameGenreById(game.id!),
+            builder: (context, genreSnapshot) {
+              if (genreSnapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              } else if (genreSnapshot.hasError) {
+                return Center(child: Text('Erro ao carregar gênero do jogo'));
+              } else if (!genreSnapshot.hasData) {
+                return Center(child: Text('Gênero do jogo não encontrado'));
+              }
+
+              final gameGender = genreSnapshot.requireData;
+
+              return FutureBuilder<Genre>(
+                future: _gr.getGenreById(gameGender.genreId!),
+                builder: (context, genreDetailSnapshot) {
+                  if (genreDetailSnapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  } else if (genreDetailSnapshot.hasError) {
+                    return Center(child: Text('Erro ao carregar detalhes do gênero'));
+                  } else if (!genreDetailSnapshot.hasData) {
+                    return Center(child: Text('Gênero não encontrado'));
+                  }
+
+                  final genre = genreDetailSnapshot.requireData;
+
+                  return Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Nome do Jogo: ${game.name}',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 8),
+                        Text('Gênero: ${genre.name}'),
+                        SizedBox(height: 8),
+                        Text('Data de Lançamento: ${game.releaseDate}'),
+                        SizedBox(height: 8),
+                        Text('Descrição: ${game.description}'),
+                        SizedBox(height: 16),
+                        Text(
+                          'Reviews:',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 8),
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: reviewList.length,
+                            itemBuilder: (context, index) {
+                              final review = reviewList[index];
+                              return ListTile(
+                                title: Text('Nota: ${review.score}'),
+                                subtitle: Text(review.description!),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
           );
         },
       ),

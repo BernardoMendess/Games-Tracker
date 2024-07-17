@@ -1,5 +1,6 @@
 import 'package:login_app/model/game.dart';
 import 'package:login_app/helper/DatabaseHelper.dart';
+import 'package:login_app/model/game_genre.dart';
 
 class GameController {
   static final GameController _instance = GameController._internal();
@@ -9,8 +10,8 @@ class GameController {
 
   GameController._internal();
 
-  Future<int> insertGame(Game game) async {
-    return await _dbHelper.insertGame(game);
+  Future<int> insertGame(Game game, int genreId) async {
+    return await _dbHelper.insertGame(game, genreId);
   }
 
   Future<List<Game>> getGames() async {
@@ -54,5 +55,10 @@ class GameController {
   Future<List<Game>> searchGamesByReviewRating(double minRating, double maxRating) async {
     List<Map<String, dynamic>> maps = await _dbHelper.searchGamesByReviewRating(minRating, maxRating);
     return maps.map((map) => Game.fromMap(map)).toList();
+  }
+
+  Future<GameGenre> getGameGenreById(int id) async {
+    Map<String, dynamic>? map = await _dbHelper.getGameGenreById(id);
+    return GameGenre.fromMap(map);
   }
 }

@@ -14,7 +14,7 @@ class Home extends StatefulWidget {
 
   const Home({Key? key, required this.username}) : super(key: key);
 
-  @override
+ @override
   State<Home> createState() => _HomeState();
 }
 
@@ -41,14 +41,14 @@ class _HomeState extends State<Home> {
     getGenres();
   }
 
-  void _insertGame() async {
+  void _insertGame(int genreId) async {
     String gameStr = gameController.text;
     String dataStr = releaseDateController.text;
     String descriptionStr = descriptionController.text;
     userId = await _lc.getUserIdByUsername(widget.username);
 
     Game game = Game(userId, gameStr, dataStr, descriptionStr);
-    int result = await _db.insertGame(game);
+    int result = await _db.insertGame(game, genreId);
     loadGames();
   }
 
@@ -279,6 +279,7 @@ class _HomeState extends State<Home> {
                 gameController.clear();
                 releaseDateController.clear();
                 descriptionController.clear();
+                selectedGenre = null;
 
                 showDialog(
                   context: context,
@@ -304,6 +305,21 @@ class _HomeState extends State<Home> {
                               decoration: InputDecoration(labelText: "Descrição"),
                               controller: descriptionController,
                             ),
+                            DropdownButtonFormField<String>(
+                              decoration: InputDecoration(labelText: "Selecione um gênero"),
+                              value: selectedGenre,
+                              items: genreList.map((Genre genre) {
+                                return DropdownMenuItem<String>(
+                                  value: genre.id.toString(),
+                                  child: Text(genre.name!),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  selectedGenre = value;
+                                });
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -317,7 +333,8 @@ class _HomeState extends State<Home> {
                         TextButton(
                           child: Text("Salvar"),
                           onPressed: () {
-                            _insertGame();
+                             int genreId = int.parse(selectedGenre!);
+                            _insertGame(genreId);
                             Navigator.pop(context);
                           },
                         ),
