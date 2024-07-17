@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:login_app/controller/game_controller.dart';
+import 'package:login_app/controller/login_controller.dart';
 import 'package:login_app/controller/review_controller.dart';
 import 'package:login_app/model/review.dart';
 
@@ -11,10 +12,11 @@ class RecentReviews extends StatefulWidget {
 }
 
 class _RecentReviewsState extends State<RecentReviews> {
-  List<Review> reviewList = [];
+  List<Map<String, dynamic>> reviewList = [];
   TextEditingController reviewController = TextEditingController();
   var _db = GameController();
   var _rc = ReviewController();
+  var _lc = LoginController();
   bool isLoggedIn = false;
 
   @override
@@ -26,32 +28,72 @@ class _RecentReviewsState extends State<RecentReviews> {
   void loadReviews() async {
     List<Review> reviews = await _rc.getReviews();
 
-    setState(() {
-      reviewList = reviews;
-    });
+    for (Review review in reviews) {
+      var game = await _db.getGameById(review.gameId!);
+      var user = await _lc.getUserById(review.userId!);
+
+      reviewList.add({
+        'review': review,
+        'gameName': game.name!,
+        'userName': user['username'],
+      });
+    }
+
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Detalhes do Jogo'),
+        title: Text('Recent Reviews'),
         backgroundColor: const Color.fromARGB(255, 214, 82, 82),
       ),
       body: reviewList.isEmpty
-        ? Center(
-            child: CircularProgressIndicator(),
-          )
-        : ListView.builder(
-            itemCount: reviewList.length,
-            itemBuilder: (context, index) {
-              Review review = reviewList[index];
-              return ListTile(
-                title: Text(review.userId!.toString()),
-                subtitle: Text(review.description!),
-              );
-            },
-          ),
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : Padding(
+              padding: const EdgeInsets.only(top: 20.0), // Espaçamento na parte superior
+              child: ListView.builder(
+                itemCount: reviewList.length,
+                itemBuilder: (context, index) {
+                  var reviewData = reviewList[index];
+                  var review = reviewData['review'] as Review;
+                  var gameName = reviewData['gameName'];
+                  var userName = reviewData['userName'];
+                  return Card(
+                    margin: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                    elevation: 5,
+                    child: Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '$gameName - ${review.score}/10',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 5),
+                          Text(
+                            'Escrito por: $userName',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                          SizedBox(height: 5),
+                          Text(review.description ?? ''),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
     );
   }
 }

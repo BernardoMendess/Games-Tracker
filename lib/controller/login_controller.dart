@@ -48,4 +48,8 @@ class LoginController {
     return userId;
   }
   
+  Future<Map<String, dynamic>> getUserById(int id) async {
+    return await con.getUserById(id);
+  }
+  
 }

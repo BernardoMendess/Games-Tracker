@@ -144,6 +144,13 @@ class DatabaseHelper {
     return null;
   }
 
+  Future<Map<String, dynamic>> getUserById(int id) async {
+    var database = await db;
+    String sql = "SELECT * FROM user WHERE id = ?;";
+    List<Map<String, dynamic>> result = await database.rawQuery(sql, [id]);
+    return result.first;
+  }
+
   Future<List<Map<String, dynamic>>> getGenres() async {
     var database = await db;
     String sql = "SELECT * FROM genre;";
