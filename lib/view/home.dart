@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:login_app/controller/genre_controller.dart';
 import 'package:login_app/controller/login_controller.dart';
 import 'package:login_app/controller/game_controller.dart';
+import 'package:login_app/controller/review_controller.dart';
 import 'package:login_app/model/game.dart';
 import 'package:login_app/model/genre.dart';
 import 'package:login_app/view/edit_game_screen.dart';
 import 'package:login_app/view/list_games.dart';
+import 'package:login_app/model/review.dart';
 import 'package:login_app/view/login.dart';
 import 'package:login_app/view/recent_reviews.dart';
 import 'package:login_app/view/game_screen.dart';
@@ -32,6 +34,7 @@ class _HomeState extends State<Home> {
   var _db = GameController();
   var _lc = LoginController();
   var _gc = GenreController();
+  var _rv = ReviewController();
 
   String? selectedGenre;
   double? selectedReviewRating;
@@ -113,6 +116,17 @@ class _HomeState extends State<Home> {
     });
   }
 
+  Future<String> calcRating(int id) async {
+  List<Review> reviews = await _rv.getReviewsByGameId(id);
+  double sum = 0;
+  for (Review r in reviews) {
+    sum += r.score!;
+  }
+  double average = sum / reviews.length;
+  return average.toStringAsFixed(1); // Limita para 1 casa decimal
+}
+
+
   Widget gameItemBuild(BuildContext context, int index) {
     return Dismissible(
       key: Key(gameList[index].id.toString()),
@@ -154,6 +168,18 @@ class _HomeState extends State<Home> {
         children: [
           ListTile(
             title: Text(gameList[index].name ?? ''),
+            subtitle: FutureBuilder<String>(
+              future: calcRating(gameList[index].id!),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Text("Calculando...");
+                } else if (snapshot.hasError) {
+                  return Text("Erro: ${snapshot.error}");
+                } else {
+                  return Text("Rating: ${snapshot.data}");
+                }
+              },
+            ),
             trailing: widget.username.isNotEmpty
                 ? IconButton(
                     icon: Icon(Icons.edit),
@@ -186,7 +212,7 @@ class _HomeState extends State<Home> {
           ),
           Divider(),
         ],
-      ),
+      )
     );
   }
 
