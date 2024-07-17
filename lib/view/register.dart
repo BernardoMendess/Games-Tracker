@@ -25,7 +25,8 @@ class _RegisterState extends State<Register> {
       form.save();
 
       try {
-        User user = User(username: _username, email: _email, password: _password);
+        User user =
+            User(username: _username, email: _email, password: _password);
         int id = await controller.saveUser(user);
         if (id != -1) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -49,7 +50,10 @@ class _RegisterState extends State<Register> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Register"), backgroundColor: Colors.blue,
+        title: Text("Cadastrar",
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Color.fromARGB(255, 99, 179, 99),
       ),
       body: Center(
         child: Container(
@@ -68,7 +72,7 @@ class _RegisterState extends State<Register> {
                       ),
                     ),
                     Padding(
-                      padding: EdgeInsets.only(top: 20, bottom: 20),
+                      padding: EdgeInsets.only(top: 20),
                       child: TextFormField(
                         onSaved: (newVal) => _username = newVal!,
                         decoration: InputDecoration(
@@ -82,9 +86,10 @@ class _RegisterState extends State<Register> {
                       child: TextFormField(
                         onSaved: (newVal) => _password = newVal!,
                         decoration: InputDecoration(
-                          labelText: "Password",
+                          labelText: "Senha",
                           border: OutlineInputBorder(),
                         ),
+                        obscureText: true,
                       ),
                     ),
                   ],
@@ -92,7 +97,12 @@ class _RegisterState extends State<Register> {
               ),
               ElevatedButton(
                 onPressed: _submit,
-                child: Text("Register"),
+                child: Text(
+                  "Register",
+                  style: TextStyle(color: Colors.white),
+                ),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Color.fromARGB(255, 99, 179, 99)),
               ),
             ],
           ),

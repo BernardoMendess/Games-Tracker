@@ -28,11 +28,8 @@ class _EditGameScreenState extends State<EditGameScreen> {
   }
 
   void updateGame() async {
-    Game game = Game(
-      widget.game.userId, 
-      gameController.text,
-      releaseDateController.text,
-      descriptionController.text);
+    Game game = Game(widget.game.userId, gameController.text,
+        releaseDateController.text, descriptionController.text);
 
     int result = await _db.updateGame(game);
 
@@ -52,9 +49,10 @@ class _EditGameScreenState extends State<EditGameScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Editar Jogo'),
-        backgroundColor: const Color.fromARGB(255, 214, 82, 82),
-      ),
+          title: Text('Editar Jogo',
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Color.fromARGB(255, 99, 179, 99)),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(20),
         child: Column(
@@ -66,7 +64,8 @@ class _EditGameScreenState extends State<EditGameScreen> {
               decoration: InputDecoration(
                 labelText: "Gênero",
                 border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 15, horizontal: 20),
               ),
             ),
             SizedBox(height: 20),
@@ -75,7 +74,8 @@ class _EditGameScreenState extends State<EditGameScreen> {
               decoration: InputDecoration(
                 labelText: "Digite o nome do jogo",
                 border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 15, horizontal: 20),
               ),
               controller: gameController,
             ),
@@ -85,7 +85,8 @@ class _EditGameScreenState extends State<EditGameScreen> {
               decoration: InputDecoration(
                 labelText: "Data de Lançamento",
                 border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 15, horizontal: 20),
               ),
               controller: releaseDateController,
             ),
@@ -96,7 +97,8 @@ class _EditGameScreenState extends State<EditGameScreen> {
               decoration: InputDecoration(
                 labelText: "Descrição",
                 border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 15, horizontal: 20),
               ),
               controller: descriptionController,
             ),
@@ -108,12 +110,22 @@ class _EditGameScreenState extends State<EditGameScreen> {
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  child: Text('Cancelar'),
+                  child: Text(
+                    'Cancelar',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Color.fromARGB(255, 99, 179, 99)),
                 ),
                 SizedBox(width: 10),
                 ElevatedButton(
                   onPressed: () => updateGame(),
-                  child: Text('Salvar'),
+                  child: Text(
+                    'Salvar',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Color.fromARGB(255, 99, 179, 99)),
                 ),
               ],
             ),

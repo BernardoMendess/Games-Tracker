@@ -46,15 +46,16 @@ class _RecentReviewsState extends State<RecentReviews> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Recent Reviews'),
-        backgroundColor: const Color.fromARGB(255, 214, 82, 82),
-      ),
+          title: Text('Reviews Recentes',
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Color.fromARGB(255, 99, 179, 99)),
       body: reviewList.isEmpty
           ? Center(
               child: CircularProgressIndicator(),
             )
           : Padding(
-              padding: const EdgeInsets.only(top: 20.0), // Espaçamento na parte superior
+              padding: const EdgeInsets.only(top: 20.0),
               child: ListView.builder(
                 itemCount: reviewList.length,
                 itemBuilder: (context, index) {

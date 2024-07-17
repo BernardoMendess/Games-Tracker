@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
 import 'package:login_app/controller/game_controller.dart';
 import 'package:login_app/controller/genre_controller.dart';
 import 'package:login_app/controller/review_controller.dart';
@@ -12,7 +12,8 @@ class GameScreen extends StatefulWidget {
   final int gameId;
   final int? userId;
 
-  const GameScreen({required this.gameId, this.userId, Key? key}) : super(key: key);
+  const GameScreen({required this.gameId, this.userId, Key? key})
+      : super(key: key);
 
   @override
   _GameScreenState createState() => _GameScreenState();
@@ -37,7 +38,8 @@ class _GameScreenState extends State<GameScreen> {
     double rating = double.parse(ratingController.text);
 
     if (widget.userId != null) {
-      Review review = Review(widget.userId!, widget.gameId, rating, DateTime.now().toString(), reviewStr);
+      Review review = Review(widget.userId!, widget.gameId, rating,
+          DateTime.now().toString(), reviewStr);
       int result = await _rc.insertReview(review);
       if (result != 0) {
         reviewController.clear();
@@ -59,9 +61,10 @@ class _GameScreenState extends State<GameScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Detalhes do Jogo'),
-        backgroundColor: const Color.fromARGB(255, 214, 82, 82),
-      ),
+          title: Text('Detalhes do Jogo',
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Color.fromARGB(255, 99, 179, 99)),
       body: FutureBuilder<Game?>(
         future: _db.getGameById(widget.gameId),
         builder: (context, snapshot) {
@@ -91,10 +94,12 @@ class _GameScreenState extends State<GameScreen> {
               return FutureBuilder<Genre>(
                 future: _gr.getGenreById(gameGender.genreId!),
                 builder: (context, genreDetailSnapshot) {
-                  if (genreDetailSnapshot.connectionState == ConnectionState.waiting) {
+                  if (genreDetailSnapshot.connectionState ==
+                      ConnectionState.waiting) {
                     return Center(child: CircularProgressIndicator());
                   } else if (genreDetailSnapshot.hasError) {
-                    return Center(child: Text('Erro ao carregar detalhes do gênero'));
+                    return Center(
+                        child: Text('Erro ao carregar detalhes do gênero'));
                   } else if (!genreDetailSnapshot.hasData) {
                     return Center(child: Text('Gênero não encontrado'));
                   }
@@ -108,7 +113,8 @@ class _GameScreenState extends State<GameScreen> {
                       children: [
                         Text(
                           'Nome do Jogo: ${game.name}',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         SizedBox(height: 8),
                         Text('Gênero: ${genre.name}'),
@@ -119,7 +125,8 @@ class _GameScreenState extends State<GameScreen> {
                         SizedBox(height: 16),
                         Text(
                           'Reviews:',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         SizedBox(height: 8),
                         Expanded(
@@ -143,14 +150,16 @@ class _GameScreenState extends State<GameScreen> {
           );
         },
       ),
-      floatingActionButton: widget.userId != null ? FloatingActionButton.extended(
-        onPressed: () {
-          _addReviewDialog();
-        },
-        label: Text('Review'),
-        icon: Icon(Icons.rate_review),
-        backgroundColor: Color.fromARGB(255, 230, 137, 137),
-      ) : null,
+      floatingActionButton: widget.userId != null
+          ? FloatingActionButton.extended(
+              onPressed: () {
+                _addReviewDialog();
+              },
+              label: Text('Review'),
+              icon: Icon(Icons.rate_review),
+              backgroundColor: Color.fromARGB(255, 230, 137, 137),
+            )
+          : null,
     );
   }
 
@@ -166,6 +175,11 @@ class _GameScreenState extends State<GameScreen> {
               TextField(
                 controller: ratingController,
                 keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(
+                      RegExp(r'^[0-9]{0,2}(\.[0-9]{0,1})?$')),
+                  FilteringTextInputFormatter.deny(RegExp(r'^0{2,}'))
+                ],
                 decoration: InputDecoration(
                   hintText: 'Nota (0-10)',
                 ),

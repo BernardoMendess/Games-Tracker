@@ -5,6 +5,7 @@ import 'package:login_app/controller/game_controller.dart';
 import 'package:login_app/model/game.dart';
 import 'package:login_app/model/genre.dart';
 import 'package:login_app/view/edit_game_screen.dart';
+import 'package:login_app/view/list_games.dart';
 import 'package:login_app/view/login.dart';
 import 'package:login_app/view/recent_reviews.dart';
 import 'package:login_app/view/game_screen.dart';
@@ -15,7 +16,7 @@ class Home extends StatefulWidget {
 
   const Home({Key? key, required this.username}) : super(key: key);
 
- @override
+  @override
   State<Home> createState() => _HomeState();
 }
 
@@ -27,7 +28,7 @@ class _HomeState extends State<Home> {
   TextEditingController descriptionController = TextEditingController();
   TextEditingController startDateController = TextEditingController();
   TextEditingController endDateController = TextEditingController();
-  int? userId = null;
+  int? userId;
   var _db = GameController();
   var _lc = LoginController();
   var _gc = GenreController();
@@ -95,7 +96,9 @@ class _HomeState extends State<Home> {
   loadGames() async {
     List<Game> games;
     userId = await _lc.getUserIdByUsername(widget.username);
-    games = userId != null ? await _db.getGamesByUserId(userId!) : await _db.getLastestGames();
+    games = userId != null
+        ? await _db.getGamesByUserId(userId!)
+        : await _db.getLastestGames();
 
     setState(() {
       gameList = games;
@@ -140,39 +143,49 @@ class _HomeState extends State<Home> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Icon(Icons.delete, color: Colors.white,),
+            Icon(
+              Icons.delete,
+              color: Colors.white,
+            ),
           ],
         ),
       ),
-      child: ListTile(
-        title: Text(gameList[index].name ?? ''),
-        trailing: IconButton(
-          icon: Icon(Icons.edit),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => EditGameScreen(game: gameList[index]),
-              ),
-            ).then((updatedGame) {
-              if (updatedGame != null) {
-                setState(() {
-                  gameList[index] = updatedGame;
-                });
-              }
-            });
-          },
-        ),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => GameScreen(userId: userId, gameId: gameList[index].id!),
-            ),
-          ).then((value) {
-            loadGames();
-          });
-        },
+      child: Column(
+        children: [
+          ListTile(
+            title: Text(gameList[index].name ?? ''),
+            trailing: widget.username.isNotEmpty
+                ? IconButton(
+                    icon: Icon(Icons.edit),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditGameScreen(game: gameList[index]),
+                        ),
+                      ).then((updatedGame) {
+                        if (updatedGame != null) {
+                          setState(() {
+                            gameList[index] = updatedGame;
+                          });
+                        }
+                      });
+                    },
+                  )
+                : null,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => GameScreen(userId: userId, gameId: gameList[index].id!),
+                ),
+              ).then((value) {
+                loadGames();
+              });
+            },
+          ),
+          Divider(),
+        ],
       ),
     );
   }
@@ -202,7 +215,8 @@ class _HomeState extends State<Home> {
         DateTime startDate = DateTime.parse(startDateStr);
         DateTime endDate = DateTime.parse(endDateStr);
 
-        filteredGames = await _db.searchGamesByReleaseDate(startDate.toString(), endDate.toString());
+        filteredGames = await _db.searchGamesByReleaseDate(
+            startDate.toString(), endDate.toString());
       }
     }
 
@@ -227,21 +241,28 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Games Tracker"),
-        backgroundColor: const Color.fromARGB(255, 214, 82, 82),
+        title: Text("Games Tracker",
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Color.fromARGB(255, 99, 179, 99),
         actions: [
           if (widget.username.isNotEmpty)
             IconButton(
-              icon: Icon(Icons.logout),
-              onPressed: () { _logout(); },
+              icon: Icon(
+                Icons.logout,
+                color: Colors.white,
+              ),
+              onPressed: () {
+                _logout();
+              },
             ),
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: widget.username.isNotEmpty
           ? FloatingActionButton(
-              child: Icon(Icons.add),
-              backgroundColor: Color.fromARGB(255, 230, 137, 137),
+              child: Icon(Icons.add, color: Colors.white,),
+              backgroundColor: Color.fromARGB(255, 182, 235, 175),
               onPressed: () {
                 gameController.clear();
                 releaseDateController.clear();
@@ -259,21 +280,25 @@ class _HomeState extends State<Home> {
                           children: [
                             TextField(
                               keyboardType: TextInputType.text,
-                              decoration: InputDecoration(labelText: "Digite o nome do jogo"),
+                              decoration: InputDecoration(
+                                  labelText: "Digite o nome do jogo"),
                               controller: gameController,
                             ),
                             TextField(
                               keyboardType: TextInputType.datetime,
-                              decoration: InputDecoration(labelText: "Data de Lançamento"),
+                              decoration: InputDecoration(
+                                  labelText: "Data de Lançamento"),
                               controller: releaseDateController,
                             ),
                             TextField(
                               keyboardType: TextInputType.multiline,
-                              decoration: InputDecoration(labelText: "Descrição"),
+                              decoration:
+                                  InputDecoration(labelText: "Descrição"),
                               controller: descriptionController,
                             ),
                             DropdownButtonFormField<String>(
-                              decoration: InputDecoration(labelText: "Selecione um gênero"),
+                              decoration: InputDecoration(
+                                  labelText: "Selecione um gênero"),
                               value: selectedGenre,
                               items: genreList.map((Genre genre) {
                                 return DropdownMenuItem<String>(
@@ -292,15 +317,25 @@ class _HomeState extends State<Home> {
                       ),
                       actions: [
                         TextButton(
-                          child: Text("Cancelar"),
+                          child: Text(
+                            "Cancelar",
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 99, 179, 99),
+                            ),
+                          ),
                           onPressed: () {
                             Navigator.pop(context);
                           },
                         ),
                         TextButton(
-                          child: Text("Salvar"),
+                          child: Text(
+                            "Salvar",
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 99, 179, 99),
+                            ),
+                          ),
                           onPressed: () {
-                             int genreId = int.parse(selectedGenre!);
+                            int genreId = int.parse(selectedGenre!);
                             _insertGame(genreId);
                             Navigator.pop(context);
                           },
@@ -317,6 +352,15 @@ class _HomeState extends State<Home> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            SizedBox(height: 10),
+            Text(
+              'Filtros',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -332,12 +376,14 @@ class _HomeState extends State<Home> {
                             children: [
                               TextField(
                                 keyboardType: TextInputType.datetime,
-                                decoration: InputDecoration(labelText: "Data de Início (YYYY-MM-DD)"),
+                                decoration: InputDecoration(
+                                    labelText: "Data de Início (YYYY-MM-DD)"),
                                 controller: startDateController,
                               ),
                               TextField(
                                 keyboardType: TextInputType.datetime,
-                                decoration: InputDecoration(labelText: "Data de Fim (YYYY-MM-DD)"),
+                                decoration: InputDecoration(
+                                    labelText: "Data de Fim (YYYY-MM-DD)"),
                                 controller: endDateController,
                               ),
                             ],
@@ -361,7 +407,9 @@ class _HomeState extends State<Home> {
                       },
                     );
                   },
-                  child: Text('Buscar por Data de Lançamento'),
+                  child: Text('Data de Lançamento',
+                      style:
+                          TextStyle(color: Color.fromARGB(255, 99, 179, 99))),
                 ),
                 ElevatedButton(
                   onPressed: () {
@@ -376,7 +424,8 @@ class _HomeState extends State<Home> {
                               selectGenre(newValue!);
                               Navigator.of(context).pop();
                             },
-                            items: genreList.map<DropdownMenuItem<String>>((Genre genre) {
+                            items: genreList
+                                .map<DropdownMenuItem<String>>((Genre genre) {
                               return DropdownMenuItem<String>(
                                 value: genre.id.toString(),
                                 child: Text(genre.name!),
@@ -387,7 +436,9 @@ class _HomeState extends State<Home> {
                       },
                     );
                   },
-                  child: Text('Gênero'),
+                  child: Text('Gênero',
+                      style:
+                          TextStyle(color: Color.fromARGB(255, 99, 179, 99))),
                 ),
                 ElevatedButton(
                   onPressed: () {
@@ -395,13 +446,15 @@ class _HomeState extends State<Home> {
                       context: context,
                       builder: (BuildContext context) {
                         return AlertDialog(
-                          title: Text('Selecione um Intervalo de Nota da Review'),
+                          title:
+                              Text('Selecione um Intervalo de Nota da Review'),
                           content: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               ...[1.0, 2.0, 3.0, 4.0, 5.0].map((rating) {
                                 return RadioListTile<double>(
-                                  title: Text('$rating - ${(rating + 0.99).toStringAsFixed(2)}'),
+                                  title: Text(
+                                      '$rating - ${(rating + 0.99).toStringAsFixed(2)}'),
                                   value: rating,
                                   groupValue: selectedReviewRating,
                                   onChanged: (double? newValue) {
@@ -418,16 +471,9 @@ class _HomeState extends State<Home> {
                       },
                     );
                   },
-                  child: Text('Nota da Review'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => RecentReviews()),
-                    );
-                  },
-                  child: Text('Reviews Recentes'),
+                  child: Text('Nota da Review',
+                      style:
+                          TextStyle(color: Color.fromARGB(255, 99, 179, 99))),
                 ),
               ],
             ),
@@ -436,7 +482,57 @@ class _HomeState extends State<Home> {
               onPressed: () {
                 getFilteredGames();
               },
-              child: Text('Buscar Jogos'),
+              child: Text('Buscar Jogos',
+                  style: TextStyle(color: Color.fromARGB(255, 99, 179, 99))),
+            ),
+            SizedBox(height: 35),
+            Text(
+              'Explorar',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => RecentReviews()),
+                      );
+                    },
+                    child: Text('Reviews Recentes',
+                      style: TextStyle(color: Color.fromARGB(255, 99, 179, 99)),
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  if (widget.username.isNotEmpty)
+                    ElevatedButton(
+                      onPressed: () async {
+                        int? userId = await _lc.getUserIdByUsername(widget.username);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => ListGames(userId: userId!,)),
+                        );
+                      },
+                      child: Text('Jogos de outros usuários',
+                        style: TextStyle(color: Color.fromARGB(255, 99, 179, 99)),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            SizedBox(height: 35),
+            Text(
+              'Listagem de Jogos',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             SizedBox(height: 20),
             Expanded(
