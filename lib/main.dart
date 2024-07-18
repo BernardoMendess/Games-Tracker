@@ -9,7 +9,7 @@ final routes = {
   "/login": (context) => Login(),
   "/register": (context) => Register(),
   "/guest": (context) => Home(username: '',),
-};
+}; 
 
 void main() {
   runApp(MaterialApp(

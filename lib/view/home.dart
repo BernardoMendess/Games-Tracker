@@ -446,13 +446,13 @@ class _HomeState extends State<Home> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               TextField(
-                                keyboardType: TextInputType.datetime,
+                                keyboardType: TextInputType.name,
                                 decoration: InputDecoration(
                                     labelText: "Data de Início (YYYY-MM-DD)"),
                                 controller: startDateController,
                               ),
                               TextField(
-                                keyboardType: TextInputType.datetime,
+                                keyboardType: TextInputType.name,
                                 decoration: InputDecoration(
                                     labelText: "Data de Fim (YYYY-MM-DD)"),
                                 controller: endDateController,

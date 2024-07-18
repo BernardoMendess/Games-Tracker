@@ -6,8 +6,10 @@ class Game {
   String? description;
 
   Game(this.userId, this.name, this.releaseDate, this.description);
+  
+  Game.withId(this.id, this.userId, this.name, this.releaseDate, this.description);
 
-  Game.fromMap(Map map) {
+  Game.fromMap(Map<String, dynamic> map) {
     this.id = map["id"];
     this.userId = map["user_id"];
     this.name = map["name"];

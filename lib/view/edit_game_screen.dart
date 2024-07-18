@@ -48,7 +48,8 @@ class _EditGameScreenState extends State<EditGameScreen> {
   }
 
   void updateGame() async {
-    Game game = Game(
+    Game game = Game.withId(
+      widget.game.id,
       widget.game.userId,
       gameController.text,
       selectedDate != null ? DateFormat('yyyy-MM-dd').format(selectedDate!) : null,
