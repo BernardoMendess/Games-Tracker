@@ -268,6 +268,16 @@ class _HomeState extends State<Home> {
     });
   }
 
+  void getGames() async {
+    List<Game> games = [];
+
+    games = await _db.getGamesByUserId((await _lc.getUserIdByUsername(widget.username))!);
+
+    setState(() {
+      gameList = games;
+    });
+  }
+
   void selectGenre(String genreId) {
     setState(() {
       selectedGenre = genreId;
@@ -277,6 +287,16 @@ class _HomeState extends State<Home> {
   void selectReviewRating(double rating) {
     setState(() {
       selectedReviewRating = rating;
+    });
+  }
+
+  void clearFilters() {
+    setState(() {
+      selectedGenre = null;
+      selectedReviewRating = null;
+      startDateController.clear();
+      endDateController.clear();
+      loadGames(); 
     });
   }
 
@@ -534,6 +554,14 @@ class _HomeState extends State<Home> {
                 getFilteredGames();
               },
               child: Text('Buscar Jogos',
+                  style: TextStyle(color: Color.fromARGB(255, 99, 179, 99))),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                clearFilters();
+              },
+              child: Text('Limpar Filtros',
                   style: TextStyle(color: Color.fromARGB(255, 99, 179, 99))),
             ),
             SizedBox(height: 35),
