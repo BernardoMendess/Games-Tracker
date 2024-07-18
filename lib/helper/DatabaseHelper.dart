@@ -158,6 +158,16 @@ INSERT INTO review(user_id, game_id, score, description, date) VALUES(4, 1, 9.6,
     return null;
   }
 
+  Future<int?> getGameIdByName(String name) async {
+    var database = await db;
+    String sql = "SELECT id FROM game WHERE name = ?;";
+    List<Map<String, dynamic>> result = await database.rawQuery(sql, [name]);
+    if (result.isNotEmpty) {
+      return result.first['id'] as int;
+    }
+    return null;
+  }
+
   Future<Map<String, dynamic>> getUserById(int id) async {
     var database = await db;
     String sql = "SELECT * FROM user WHERE id = ?;";
@@ -186,10 +196,9 @@ INSERT INTO review(user_id, game_id, score, description, date) VALUES(4, 1, 9.6,
     return gameGenre.first;
   }
 
-  Future<int> insertGame(Game game, int genreId) async {
+  Future<int> insertGame(Game game) async {
     var database = await db;
     int result = await database.insert("game", game.toMap());
-    insertGameGenre(GameGenre(game.id, genreId));
     return result;
   }
 

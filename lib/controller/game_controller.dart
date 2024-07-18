@@ -11,7 +11,9 @@ class GameController {
   GameController._internal();
 
   Future<int> insertGame(Game game, int genreId) async {
-    return await _dbHelper.insertGame(game, genreId);
+    int result = await _dbHelper.insertGame(game);
+    await _dbHelper.insertGameGenre(GameGenre(await _dbHelper.getGameIdByName(game.name!), genreId));
+    return result;
   }
 
   Future<List<Game>> getGames() async {

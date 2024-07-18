@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:login_app/controller/genre_controller.dart';
 import 'package:login_app/controller/login_controller.dart';
 import 'package:login_app/controller/game_controller.dart';
@@ -123,10 +124,26 @@ class _HomeState extends State<Home> {
     sum += r.score!;
   }
   double average = sum / reviews.length;
-  return average.toStringAsFixed(1); // Limita para 1 casa decimal
+  return average.toStringAsFixed(1);
 }
 
 
+  DateTime? selectedDate;
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate ?? DateTime.now(),
+      firstDate: DateTime(1950),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && picked != selectedDate) {
+      setState(() {
+        selectedDate = picked;
+        releaseDateController.text = DateFormat('dd/MM/yyyy').format(selectedDate!);
+      });
+    }
+  }
+  
   Widget gameItemBuild(BuildContext context, int index) {
     return Dismissible(
       key: Key(gameList[index].id.toString()),
@@ -310,11 +327,19 @@ class _HomeState extends State<Home> {
                                   labelText: "Digite o nome do jogo"),
                               controller: gameController,
                             ),
-                            TextField(
-                              keyboardType: TextInputType.datetime,
-                              decoration: InputDecoration(
-                                  labelText: "Data de Lançamento"),
-                              controller: releaseDateController,
+                            GestureDetector(
+                              onTap: () => _selectDate(context),
+                              child: AbsorbPointer(
+                                child: TextFormField(
+                                  keyboardType: TextInputType.datetime,
+                                  decoration: InputDecoration(
+                                    labelText: "Data de Lançamento",
+                                    border: OutlineInputBorder(),
+                                    contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                                  ),
+                                  controller: releaseDateController,
+                                ),
+                              ),
                             ),
                             TextField(
                               keyboardType: TextInputType.multiline,
@@ -477,10 +502,10 @@ class _HomeState extends State<Home> {
                           content: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              ...[1.0, 2.0, 3.0, 4.0, 5.0].map((rating) {
+                              ...[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0].map((rating) {
                                 return RadioListTile<double>(
                                   title: Text(
-                                      '$rating - ${(rating + 0.99).toStringAsFixed(2)}'),
+                                      '$rating - ${(rating + 1).toStringAsFixed(1)}'),
                                   value: rating,
                                   groupValue: selectedReviewRating,
                                   onChanged: (double? newValue) {
