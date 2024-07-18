@@ -1,6 +1,7 @@
 import 'package:login_app/model/game.dart';
 import 'package:login_app/helper/DatabaseHelper.dart';
 import 'package:login_app/model/game_genre.dart';
+import 'package:login_app/model/review.dart';
 
 class GameController {
   static final GameController _instance = GameController._internal();
@@ -67,5 +68,27 @@ class GameController {
   Future<List<Game>> getGamesNotUser(int userId) async {
     List<Map<String, dynamic>> maps = await _dbHelper.getGamesNotCreatedByUser(userId);
     return maps.map((map) => Game.fromMap(map)).toList();
+  }
+
+Future<List<Game>> getGamesByRating(double ini, double fim) async {
+  List<Map<String, dynamic>> maps = await _dbHelper.getGames();
+  List<Game> games = maps.map((map) => Game.fromMap(map)).toList();
+  List<Game> insideRating = List.empty(growable: true);
+  for (Game game in games) {
+    List<Review> reviews = await getReviewsByGameId(game.id!);
+    double sum = 0;
+    for (Review review in reviews) {
+      sum += review.score!;
+    }
+    if (sum / reviews.length >= ini && sum / reviews.length <= fim) {
+      insideRating.add(game);
+    }
+  }
+  return insideRating;
+}
+
+  Future<List<Review>> getReviewsByGameId(int id) async{
+    List<Map<String, dynamic>> maps = await _dbHelper.getReviewsByGameId(id);
+    return maps.map((map) => Review.fromMap(map)).toList();
   }
 }

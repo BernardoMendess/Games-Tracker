@@ -248,8 +248,8 @@ class _HomeState extends State<Home> {
       filteredGames = await _db.searchGamesByGenre(genreId);
     } else if (selectedReviewRating != null) {
       double minRating = selectedReviewRating!;
-      double maxRating = selectedReviewRating! + 0.99;
-      filteredGames = await _db.searchGamesByReviewRating(minRating, maxRating);
+      double maxRating = selectedReviewRating! + 0.9;
+      filteredGames = await _db.getGamesByRating(minRating, maxRating);
     } else {
       String startDateStr = startDateController.text;
       String endDateStr = endDateController.text;
@@ -502,10 +502,10 @@ class _HomeState extends State<Home> {
                           content: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              ...[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0].map((rating) {
+                              ...[0.1, 1.1, 2.1, 3.1, 4.1, 5.1, 6.1, 7.1, 8.1, 9.1].map((rating) {
                                 return RadioListTile<double>(
                                   title: Text(
-                                      '$rating - ${(rating + 1).toStringAsFixed(1)}'),
+                                      '$rating - ${(rating + 0.9).toStringAsFixed(1)}'),
                                   value: rating,
                                   groupValue: selectedReviewRating,
                                   onChanged: (double? newValue) {
