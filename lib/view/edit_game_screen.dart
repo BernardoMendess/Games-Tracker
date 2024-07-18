@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:login_app/controller/game_controller.dart';
+import 'package:login_app/controller/genre_controller.dart';
 import 'package:login_app/model/game.dart';
 import 'package:intl/intl.dart';
+import 'package:login_app/model/game_genre.dart';
+import 'package:login_app/model/genre.dart';
 
 class EditGameScreen extends StatefulWidget {
   final Game game;
@@ -14,11 +17,13 @@ class EditGameScreen extends StatefulWidget {
 
 class _EditGameScreenState extends State<EditGameScreen> {
   List<Game> gameList = [];
+  List<Genre> genreList = [];
   TextEditingController gameController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
   TextEditingController releaseDateController = TextEditingController();
-  String selectedGenre = '';
+  String? selectedGenre;
   var _db = GameController();
+  var _gc = GenreController();
   DateTime? selectedDate;
 
   @override
@@ -30,6 +35,7 @@ class _EditGameScreenState extends State<EditGameScreen> {
       selectedDate = DateFormat('yyyy-MM-dd').parse(widget.game.releaseDate!);
       releaseDateController.text = DateFormat('dd/MM/yyyy').format(selectedDate!);
     }
+    getGenres();
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -47,7 +53,19 @@ class _EditGameScreenState extends State<EditGameScreen> {
     }
   }
 
-  void updateGame() async {
+  void getGenres() async {
+    List<Genre> genres = await _gc.getGenres();
+
+    setState(() {
+      genreList = genres;
+    });
+  }
+
+  Future<GameGenre?> getGameGenre(int gameId) async {
+    return await _db.getGameGenreById(gameId);
+  }
+
+  Future<void> updateGame(int genreId) async {
     Game game = Game.withId(
       widget.game.id,
       widget.game.userId,
@@ -56,10 +74,12 @@ class _EditGameScreenState extends State<EditGameScreen> {
       descriptionController.text,
     );
 
-    int result = await _db.updateGame(game);
+    int result = await _db.updateGame(game, genreId);
 
-    loadGames();
-    Navigator.pop(context, game);
+    if (result > 0) {
+      loadGames();
+      Navigator.pop(context, game);
+    }
   }
 
   void loadGames() async {
@@ -80,85 +100,119 @@ class _EditGameScreenState extends State<EditGameScreen> {
         ),
         backgroundColor: Color.fromARGB(255, 99, 179, 99),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              enabled: false,
-              initialValue: selectedGenre,
-              decoration: InputDecoration(
-                labelText: "Gênero",
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-              ),
-            ),
-            SizedBox(height: 20),
-            TextFormField(
-              keyboardType: TextInputType.text,
-              decoration: InputDecoration(
-                labelText: "Digite o nome do jogo",
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-              ),
-              controller: gameController,
-            ),
-            SizedBox(height: 20),
-            GestureDetector(
-              onTap: () => _selectDate(context),
-              child: AbsorbPointer(
-                child: TextFormField(
-                  keyboardType: TextInputType.datetime,
+      body: FutureBuilder<GameGenre?>(
+        future: getGameGenre(widget.game.id!),
+        builder: (context, genreSnapshot) {
+          if (genreSnapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (genreSnapshot.hasError) {
+            return Center(child: Text('Erro ao carregar gênero do jogo'));
+          } else if (!genreSnapshot.hasData) {
+            return Center(child: Text('Gênero do jogo não encontrado'));
+          }
+
+          final gameGenre = genreSnapshot.data;
+
+          if (gameGenre != null && selectedGenre == null) {
+            selectedGenre = gameGenre.genreId.toString();
+          }
+
+          return SingleChildScrollView(
+            padding: EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  keyboardType: TextInputType.text,
                   decoration: InputDecoration(
-                    labelText: "Data de Lançamento",
+                    labelText: "Digite o nome do jogo",
                     border: OutlineInputBorder(),
                     contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
                   ),
-                  controller: releaseDateController,
+                  controller: gameController,
                 ),
-              ),
-            ),
-            SizedBox(height: 20),
-            TextFormField(
-              keyboardType: TextInputType.multiline,
-              maxLines: null,
-              decoration: InputDecoration(
-                labelText: "Descrição",
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-              ),
-              controller: descriptionController,
-            ),
-            SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
+                SizedBox(height: 20),
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    labelText: "Selecione um gênero",
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                  ),
+                  value: selectedGenre,
+                  items: genreList.map((Genre genre) {
+                    return DropdownMenuItem<String>(
+                      value: genre.id.toString(),
+                      child: Text(genre.name!),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      selectedGenre = value!;
+                    });
                   },
-                  child: Text(
-                    'Cancelar',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: Color.fromARGB(255, 99, 179, 99)),
                 ),
-                SizedBox(width: 10),
-                ElevatedButton(
-                  onPressed: () => updateGame(),
-                  child: Text(
-                    'Salvar',
-                    style: TextStyle(color: Colors.white),
+                SizedBox(height: 20),
+                GestureDetector(
+                  onTap: () => _selectDate(context),
+                  child: AbsorbPointer(
+                    child: TextFormField(
+                      keyboardType: TextInputType.datetime,
+                      decoration: InputDecoration(
+                        labelText: "Data de Lançamento",
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                      ),
+                      controller: releaseDateController,
+                    ),
                   ),
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: Color.fromARGB(255, 99, 179, 99)),
+                ),
+                SizedBox(height: 20),
+                TextFormField(
+                  keyboardType: TextInputType.multiline,
+                  maxLines: null,
+                  decoration: InputDecoration(
+                    labelText: "Descrição",
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                  ),
+                  controller: descriptionController,
+                ),
+                SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: Text(
+                        'Cancelar',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Color.fromARGB(255, 99, 179, 99)),
+                    ),
+                    SizedBox(width: 10),
+                    ElevatedButton(
+                      onPressed: () async {
+                        if (selectedGenre != null) {
+                          int genreId = int.parse(selectedGenre!);
+                          await updateGame(genreId);
+                        }
+                      },
+                      child: Text(
+                        'Salvar',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Color.fromARGB(255, 99, 179, 99)),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

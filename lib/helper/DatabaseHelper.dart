@@ -182,6 +182,17 @@ INSERT INTO review(user_id, game_id, score, description, date) VALUES(4, 1, 9.6,
     return genres;
   }
 
+  Future<int> updateGenre(GameGenre gameGenre) async {
+    var database = await db;
+    int result = await database.update(
+      "game_genre",
+      gameGenre.toMap(),
+      where: "game_id = ?",
+      whereArgs: [gameGenre.gameId]
+    );
+    return result;
+  }
+
   Future<Map<String, dynamic>> getGenreById(int id) async {
     var database = await db;
     String sql = "SELECT * FROM genre WHERE id = ?;";
@@ -209,7 +220,7 @@ INSERT INTO review(user_id, game_id, score, description, date) VALUES(4, 1, 9.6,
     return games;
   }
 
-  Future<int> updateGame(Game game) async {
+  Future<int> updateGame(Game game, int genreId) async {
     var database = await db;
     int result = await database.update(
       "game",
@@ -217,6 +228,7 @@ INSERT INTO review(user_id, game_id, score, description, date) VALUES(4, 1, 9.6,
       where: "id = ?",
       whereArgs: [game.id]
     );
+    updateGenre(GameGenre(game.id, genreId));
     return result;
   }
 

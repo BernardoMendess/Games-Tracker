@@ -344,9 +344,13 @@ class _HomeState extends State<Home> {
                             TextField(
                               keyboardType: TextInputType.text,
                               decoration: InputDecoration(
-                                  labelText: "Digite o nome do jogo"),
+                                labelText: "Digite o nome do jogo",
+                                border: OutlineInputBorder(),
+                                contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                              ),
                               controller: gameController,
                             ),
+                            SizedBox(height: 20),
                             GestureDetector(
                               onTap: () => _selectDate(context),
                               child: AbsorbPointer(
@@ -361,15 +365,23 @@ class _HomeState extends State<Home> {
                                 ),
                               ),
                             ),
+                            SizedBox(height: 20),
                             TextField(
                               keyboardType: TextInputType.multiline,
-                              decoration:
-                                  InputDecoration(labelText: "Descrição"),
+                              decoration: InputDecoration(
+                                labelText: "Descrição",
+                                border: OutlineInputBorder(),
+                                contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                              ),
                               controller: descriptionController,
                             ),
+                            SizedBox(height: 20),
                             DropdownButtonFormField<String>(
                               decoration: InputDecoration(
-                                  labelText: "Selecione um gênero"),
+                                labelText: "Selecione um gênero",
+                                border: OutlineInputBorder(),
+                                contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                              ),
                               value: selectedGenre,
                               items: genreList.map((Genre genre) {
                                 return DropdownMenuItem<String>(
@@ -379,7 +391,7 @@ class _HomeState extends State<Home> {
                               }).toList(),
                               onChanged: (value) {
                                 setState(() {
-                                  selectedGenre = value;
+                                  selectedGenre = value!;
                                 });
                               },
                             ),

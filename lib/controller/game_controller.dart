@@ -22,8 +22,8 @@ class GameController {
     return maps.map((map) => Game.fromMap(map)).toList();
   }
 
-  Future<int> updateGame(Game game) async {
-    return await _dbHelper.updateGame(game);
+  Future<int> updateGame(Game game, int genreId) async {
+    return await _dbHelper.updateGame(game, genreId);
   }
 
   Future<int> deleteGame(int id) async {
