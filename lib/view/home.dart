@@ -419,7 +419,7 @@ class _HomeState extends State<Home> {
             )
           : null,
       body: Container(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -548,23 +548,27 @@ class _HomeState extends State<Home> {
                 ),
               ],
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                getFilteredGames();
-              },
-              child: Text('Buscar Jogos',
-                  style: TextStyle(color: Color.fromARGB(255, 99, 179, 99))),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    getFilteredGames();
+                  },
+                  child: Text('Buscar Jogos',
+                      style: TextStyle(color: Color.fromARGB(255, 99, 179, 99))),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    clearFilters();
+                  },
+                  child: Text('Limpar Filtros',
+                      style: TextStyle(color: Color.fromARGB(255, 99, 179, 99))),
+                ),
+                SizedBox(height: 20),
+              ],
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                clearFilters();
-              },
-              child: Text('Limpar Filtros',
-                  style: TextStyle(color: Color.fromARGB(255, 99, 179, 99))),
-            ),
-            SizedBox(height: 35),
             Text(
               'Explorar',
               style: TextStyle(
